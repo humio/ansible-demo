@@ -1,0 +1,49 @@
+---
+- hosts: zookeepers
+  become: true
+  vars:
+    zookeeper_url: http://dk.mirrors.quenda.co/apache/zookeeper/zookeeper-3.4.12/zookeeper-3.4.12.tar.gz
+  roles:
+    - role: humio.java
+    - role: AnsibleShipyard.ansible-zookeeper
+      zookeeper_hosts: "
+       {%- set ips = [] %}
+       {%- for host in groups['zookeepers'] %}
+       {{- ips.append(dict(id=hostvars[host]['zookeeper_id'], host=host, ip=hostvars[host]['ansible_default_ipv4'].address)) }}
+       {%- endfor %}
+       {{- ips -}}"
+
+- hosts: kafkas
+  become: true
+  roles:
+    - role: humio.java
+    - role: humio.kafka
+      zookeeper_hosts: "
+       {%- set ips = [] %}
+       {%- for host in groups['zookeepers'] %}
+       {{- ips.append(dict(id=hostvars[host]['zookeeper_id'], host=host, ip=hostvars[host]['ansible_default_ipv4'].address)) }}
+       {%- endfor %}
+       {{- ips -}}"
+      kafka_listeners:
+        - host: "{{ ansible_ens32.ipv4.address }}"
+
+- hosts: humios
+  become: true
+  roles:
+    - role: humio.java
+    - role: humio.server
+      zookeeper_hosts: "
+       {%- set ips = [] %}
+       {%- for host in groups['zookeepers'] %}
+       {{- ips.append(dict(id=hostvars[host]['zookeeper_id'], host=host, ip=hostvars[host]['ansible_default_ipv4'].address)) }}
+       {%- endfor %}
+       {{- ips -}}"
+      kafka_hosts: "
+       {%- set ips = [] %}
+       {%- for host in groups['kafkas'] %}
+       {{- ips.append(dict(id=hostvars[host]['zookeeper_id'], host=host, ip=hostvars[host]['ansible_default_ipv4'].address)) }}
+       {%- endfor %}
+       {{- ips -}}"
+#      humio_config:
+##        all: "FILE=humio_config"
+#        "0": "FILE=humio_0_config"
