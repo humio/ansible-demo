@@ -15,7 +15,7 @@ kafka_port: 9092
 kafka_broker_id: 0
 
 humio_mirror: https://repo.humio.com/repository/maven-public
-humio_version: 1.1.11
+humio_version: 1.1.18
 humio_port: 8080
 humio_elastic_port: 9200
 humio_host_id: 0
