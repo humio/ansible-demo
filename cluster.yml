@@ -1,5 +1,5 @@
 ---
-- hosts: zookeepers
+- hosts: tag_zookeepers
   become: true
   vars:
     zookeeper_url: http://dk.mirrors.quenda.co/apache/zookeeper/zookeeper-3.4.12/zookeeper-3.4.12.tar.gz
@@ -8,42 +8,52 @@
     - role: AnsibleShipyard.ansible-zookeeper
       zookeeper_hosts: "
        {%- set ips = [] %}
-       {%- for host in groups['zookeepers'] %}
-       {{- ips.append(dict(id=hostvars[host]['zookeeper_id'], host=host, ip=hostvars[host]['ansible_default_ipv4'].address)) }}
+       {%- for host in groups['tag_zookeepers'] %}
+       {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['ansible_bond0_0'].ipv4.address)) }}
        {%- endfor %}
        {{- ips -}}"
 
-- hosts: kafkas
+- hosts: tag_kafkas
+  serial: 1
   become: true
   roles:
     - role: humio.java
     - role: humio.kafka
       zookeeper_hosts: "
        {%- set ips = [] %}
-       {%- for host in groups['zookeepers'] %}
-       {{- ips.append(dict(id=hostvars[host]['zookeeper_id'], host=host, ip=hostvars[host]['ansible_default_ipv4'].address)) }}
+       {%- for host in groups['tag_zookeepers'] %}
+       {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['ansible_bond0_0'].ipv4.address)) }}
        {%- endfor %}
        {{- ips -}}"
       kafka_listeners:
-        - host: "{{ ansible_ens32.ipv4.address }}"
+        - host: "{{ ansible_bond0_0.ipv4.address }}"
 
-- hosts: humios
+- hosts: tag_humios
+  serial: 1
   become: true
   roles:
     - role: humio.java
     - role: humio.server
       zookeeper_hosts: "
        {%- set ips = [] %}
-       {%- for host in groups['zookeepers'] %}
-       {{- ips.append(dict(id=hostvars[host]['zookeeper_id'], host=host, ip=hostvars[host]['ansible_default_ipv4'].address)) }}
+       {%- for host in groups['tag_zookeepers'] %}
+       {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['ansible_bond0_0'].ipv4.address)) }}
        {%- endfor %}
        {{- ips -}}"
       kafka_hosts: "
        {%- set ips = [] %}
-       {%- for host in groups['kafkas'] %}
-       {{- ips.append(dict(id=hostvars[host]['zookeeper_id'], host=host, ip=hostvars[host]['ansible_default_ipv4'].address)) }}
+       {%- for host in groups['tag_kafkas'] %}
+       {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['ansible_bond0_0'].ipv4.address)) }}
        {%- endfor %}
        {{- ips -}}"
-#      humio_config:
+      humio_host_id: "{{ ansible_local['cluster_index'] }}"
+      humio_config:
 ##        all: "FILE=humio_config"
-#        "0": "FILE=humio_0_config"
+        "0": "EXTERNAL_URL=http://{{ ansible_bond0_0.ipv4.address }}:8080"
+
+- hosts: localhost
+  connection: local
+  tasks:
+    - name: Rebalance partitions
+      shell: |
+        curl -XPOST -i http://{{ hostvars[groups['tag_humios']|random]['ansible_bond0'].ipv4.address }}:8080/api/v1/clusterconfig/partitions/setdefaults

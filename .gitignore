@@ -3,3 +3,7 @@
 
 *.iml
 .idea
+
+*.lock.info
+terraform.tfstate*
+.terraform
