@@ -6,4 +6,5 @@
 
 *.lock.info
 terraform.tfstate*
-.terraform/*
+*/.terraform
+
