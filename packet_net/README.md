@@ -46,14 +46,20 @@ After a while (usually around 5 minutes) you will have a new project in packet.n
 
 ## Provisioning Humio
 
-First, make sure you have the required Ansible Galay roles installed
+First, make sure you have the required Ansible Galaxy roles installed
 
 ```bash
 ansible-galaxy install --role-file=requirements.yml
 ```
 
-
+Finally, the cluster can be provisioned with the `site.yml` playbook
 
 ```bash
 ansible-playbook site.yml
+```
+
+Once the cluster is up and running, the Humio web interface should be available on TCP port 8080 of any of the hosts in the `tag_humios` group,
+
+```bash
+open http://$(./packet_net.py | jq -r '.tag_humios[0]'):8080
 ```
