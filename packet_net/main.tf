@@ -24,7 +24,7 @@ provider "packet" {
 }
 
 resource "packet_project" "humio_performancetest_project" {
-  name = "Performance Test"
+  name = "Humio"
 }
 
 resource "packet_device" "humios" {
