@@ -1,0 +1,32 @@
+---
+- group: name=ingester system=yes
+- user: name=ingester system=yes group=ingester
+
+- name: Install jre
+  apt:
+    name: openjdk-8-jre
+    update_cache: yes
+
+- name: Create ingester lib directories
+  file:
+    path: /usr/lib/ingester
+    state: directory
+
+- name: Create ingester working directories
+  file:
+    path: /var/ingester
+    state: directory
+    owner: "ingester"
+    group: "ingester"
+
+- name: Download ingester
+  copy:
+    src: "perftest.jar"
+    dest: "/usr/lib/ingester/perftest.jar"
+  notify: Restart ingester
+
+- name: Add systemd service
+  template:
+    src: ingester.service.j2
+    dest: "/etc/systemd/system/ingester.service"
+  notify: Restart ingester

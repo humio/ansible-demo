@@ -1,0 +1,7 @@
+---
+- service:
+    name: "ingester"
+    daemon_reload: yes
+    enabled: yes
+    state: restarted
+  listen: Restart ingester

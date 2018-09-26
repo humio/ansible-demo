@@ -55,5 +55,23 @@
   connection: local
   tasks:
     - name: Rebalance partitions
-      shell: |
-        curl -XPOST -i http://{{ hostvars[groups['tag_humios']|random]['ansible_bond0'].ipv4.address }}:8080/api/v1/clusterconfig/partitions/setdefaults
+      uri:
+        url: http://{{ hostvars[groups['tag_humios']|random]['ansible_bond0'].ipv4.address }}:8080/api/v1/clusterconfig/partitions/setdefaults
+        method: POST
+    - name: Create repository
+      uri:
+        url: "http://{{ hostvars[groups['tag_humios']|random]['ansible_bond0'].ipv4.address }}:8080/graphql"
+        method: POST
+        body_format: json
+        body: |
+          {
+            "query":"mutation {createRepository(name: \"dataspace0\") {__typename}}"
+          }
+
+- hosts: tag_ingesters
+  roles:
+    - role: ingester
+      vars:
+        ingest_baseurls: "http://{{ hostvars[groups['tag_humios']|random]['ansible_bond0'].ipv4.address }}:8080"
+        ingest_tens_gb_per_day: 10
+        ingest_users: 1

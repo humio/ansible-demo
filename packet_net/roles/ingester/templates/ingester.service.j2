@@ -1,0 +1,12 @@
+[Unit]
+  Description=Ingester service
+  After=network.target
+
+[Service]
+  User=ingester
+  Group=ingester
+  WorkingDirectory=/var/ingester
+  ExecStart=/usr/bin/java  -Dusers={{ ingest_users }} -DtensGbPerDay={{ ingest_tens_gb_per_day }} -Dtoken=developer -Dbaseurls={{ ingest_baseurls }} -jar /usr/lib/ingester/perftest.jar -s com.humio.perftest.FixedRateIngestSimulation
+
+[Install]
+  WantedBy=default.target
