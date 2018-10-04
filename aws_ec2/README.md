@@ -25,7 +25,7 @@ A quick walkthrough for creating machines
 
 ## Provisioning Humio
 
-First, make sure you have the required Ansible Galaxy roles installed and Boto3.
+First, make sure you have the required Ansible Galaxy roles installed and [Boto3](https://github.com/boto/boto3).
 
 ```bash
 ansible-galaxy install --role-file=requirements.yml
