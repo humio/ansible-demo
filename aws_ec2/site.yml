@@ -1,33 +1,39 @@
 ---
+- hosts: all
+  gather_facts: False
+  become: true
+  pre_tasks:
+  - raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+    changed_when: false
+  - setup:
+
 - hosts: security_group_zookeepers
   become: true
-  vars:
-    zookeeper_url: http://dk.mirrors.quenda.co/apache/zookeeper/zookeeper-3.4.12/zookeeper-3.4.12.tar.gz
   roles:
     - role: humio.java
     - role: AnsibleShipyard.ansible-zookeeper
+      zookeeper_url: http://dk.mirrors.quenda.co/apache/zookeeper/zookeeper-3.4.12/zookeeper-3.4.12.tar.gz
       zookeeper_hosts: "
        {%- set ips = [] %}
        {%- for host in groups['security_group_zookeepers'] %}
-       {{- ips.append(dict(id=hostvars[host]['ec2_tag_zookeeper_id'], host=host, ip=hostvars[host]['ansible_default_ipv4'].address)) }}
+       {{- ips.append(dict(id=hostvars[host]['ec2_tag_cluster_index'], host=host, ip=hostvars[host].ec2_private_ip_address)) }}
        {%- endfor %}
        {{- ips -}}"
 
 - hosts: security_group_kafkas
   become: true
-  vars:
-      kafka_broker_id: "{{ec2_tag_kafka_broker_id}}"
   roles:
     - role: humio.java
     - role: humio.kafka
+      kafka_broker_id: "{{ ec2_tag_cluster_index }}"
       zookeeper_hosts: "
        {%- set ips = [] %}
        {%- for host in groups['security_group_zookeepers'] %}
-       {{- ips.append(dict(id=hostvars[host]['ec2_tag_zookeeper_id'], host=host, ip=hostvars[host]['ansible_default_ipv4'].address)) }}
+       {{- ips.append(dict(id=hostvars[host]['ec2_tag_cluster_index'], host=host, ip=hostvars[host].ec2_private_ip_address)) }}
        {%- endfor %}
        {{- ips -}}"
       kafka_listeners:
-        - host: "{{ ansible_default_ipv4.address }}"
+        - host: "{{ ec2_private_ip_address }}"
 
 - hosts: security_group_humios
   become: true
@@ -38,15 +44,26 @@
       zookeeper_hosts: "
        {%- set ips = [] %}
        {%- for host in groups['security_group_zookeepers'] %}
-       {{- ips.append(dict(id=hostvars[host]['ec2_tag_zookeeper_id'], host=host, ip=hostvars[host]['ansible_default_ipv4'].address)) }}
+       {{- ips.append(dict(id=hostvars[host]['ec2_tag_cluster_index'], host=host, ip=hostvars[host].ec2_private_ip_address)) }}
        {%- endfor %}
        {{- ips -}}"
       kafka_hosts: "
        {%- set ips = [] %}
        {%- for host in groups['security_group_kafkas'] %}
-       {{- ips.append(dict(id=hostvars[host]['ec2_tag_kafka_broker_id'], host=host, ip=hostvars[host]['ansible_default_ipv4'].address)) }}
+       {{- ips.append(dict(id=hostvars[host]['ec2_tag_cluster_index'], host=host, ip=hostvars[host].ec2_private_ip_address)) }}
        {%- endfor %}
        {{- ips -}}"
-#      humio_config:
+      humio_config:
 ##        all: "FILE=humio_config"
-#        "0": "FILE=humio_0_config"
+        "0": "EXTERNAL_URL=http://{{ ec2_private_ip_address }}:8080"
+
+- hosts: localhost
+  connection: local
+  tasks:
+  - name: Rebalance partitions
+    tags: humio
+    uri:
+      url: http://{{ hostvars[groups['security_group_humios']|random].ec2_public_dns_name }}:8080/api/v1/clusterconfig/partitions/setdefaults
+      method: POST
+  - debug:
+      msg: "Congratulations. Humio is now available at http://{{ hostvars[groups['security_group_humios']|random].ec2_public_dns_name }}:8080/"
