@@ -1,38 +1,3 @@
-variable "packet_auth_token" {
-  type = "string"
-}
-
-variable "facility" {
-  type = "string"
-  default = "ams1"
-}
-
-variable "plan" {
-  type = "string"
-  default = "baremetal_1"
-  description = <<EOS
-The list of Packet machines. Check curl -s -H "Accept: application/json" -H "X-Auth-Token: $\{TF_VAR_packet_auth_token\}" "https://api.packet.net/plans" | jq '.plans[] | [.name, .slug, .description, .pricing.hour]' to see a list of machines
-EOS
-}
-
-variable "ingester_plan" {
-  type = "string"
-  default = "baremetal_1"
-  description = <<EOS
-The list of Packet machines. Check curl -s -H "Accept: application/json" -H "X-Auth-Token: $\{TF_VAR_packet_auth_token\}" "https://api.packet.net/plans" | jq '.plans[] | [.name, .slug, .description, .pricing.hour]' to see a list of machines
-EOS
-}
-
-variable "humio_instances" {
-  type = "string"
-  default = "3"
-}
-
-variable "ingester_instances" {
-  type = "string"
-  default = "0"
-}
-
 provider "packet" {
   auth_token = "${var.packet_auth_token}"
 }
@@ -41,20 +6,63 @@ resource "packet_project" "humio_performancetest_project" {
   name = "Humio"
 }
 
-resource "packet_device" "humios" {
-  count            = "${var.humio_instances}"
-  hostname         = "${format("humio%02d",  count.index + 1)}"
-  plan             = "${var.plan}"
+resource "packet_device" "zk-kafka-humios" {
+  count            = "${var.zkh_instances}"
+  hostname         = "${format("humio%02d", count.index + 1)}"
+  plan             = "${var.humio_plan}"
   facility         = "${var.facility}"
   operating_system = "ubuntu_18_04"
   billing_cycle    = "hourly"
   project_id       = "${packet_project.humio_performancetest_project.id}"
   tags             = ["zookeepers", "kafkas", "humios"]
+  user_data        = <<USERDATA
+#!/bin/bash
+mkdir -p /etc/ansible/facts.d
+echo '${count.index + 1}' > /etc/ansible/facts.d/cluster_index.fact
+USERDATA
 
   provisioner "remote-exec" {
     inline = [
-      "mkdir -p /etc/ansible/facts.d",
-      "echo '${count.index+1}' > /etc/ansible/facts.d/cluster_index.fact"
+      "/bin/mkdir -p /var/humio",
+      "/usr/bin/apt update",
+      "/usr/bin/apt -y install parted",
+      "/sbin/parted -a optimal /dev/nvme0n1 mklabel gpt",
+      "/sbin/parted -a optimal /dev/nvme0n1 mkpart primary ext4 0% 100%",
+      "sleep 5s",
+      "/sbin/mkfs.ext4 /dev/nvme0n1p1",
+      "/bin/mount /dev/nvme0n1p1 /var/humio -t ext4"
+      //      TODO: Add to /etc/fstab
+    ]
+  }
+
+}
+
+resource "packet_device" "humios" {
+  count            = "${var.humio_instances}"
+  hostname         = "${format("humio%02d", count.index + var.zkh_instances + 1)}"
+  plan             = "${var.humio_plan}"
+  facility         = "${var.facility}"
+  operating_system = "ubuntu_18_04"
+  billing_cycle    = "hourly"
+  project_id       = "${packet_project.humio_performancetest_project.id}"
+  tags             = ["kafkas", "humios"]
+  user_data        = <<USERDATA
+#!/bin/bash
+mkdir -p /etc/ansible/facts.d
+echo '${count.index + var.zkh_instances + 1}' > /etc/ansible/facts.d/cluster_index.fact
+USERDATA
+
+  provisioner "remote-exec" {
+    inline = [
+      "/bin/mkdir -p /var/humio",
+      "/usr/bin/apt update",
+      "/usr/bin/apt -y install parted",
+      "/sbin/parted -a optimal /dev/nvme0n1 mklabel gpt",
+      "/sbin/parted -a optimal /dev/nvme0n1 mkpart primary ext4 0% 100%",
+      "sleep 5s",
+      "/sbin/mkfs.ext4 /dev/nvme0n1p1",
+      "/bin/mount /dev/nvme0n1p1 /var/humio -t ext4"
+      //      TODO: Add to /etc/fstab
     ]
   }
 }
@@ -62,7 +70,7 @@ resource "packet_device" "humios" {
 resource "packet_device" "ingesters" {
   count            = "${var.ingester_instances}"
   hostname         = "${format("ingester%02d",  count.index + 1)}"
-  plan             = "${var.plan}"
+  plan             = "${var.ingester_plan}"
   facility         = "${var.facility}"
   operating_system = "ubuntu_18_04"
   billing_cycle    = "hourly"

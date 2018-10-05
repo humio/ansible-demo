@@ -1,0 +1,68 @@
+---
+- hosts: tag_ingesters
+  tags: ingest
+  tasks:
+  - service:
+      name: "ingester@{{ item }}"
+      state: stopped
+    with_sequence: count=8
+    ignore_errors: yes
+  - file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+      - "/var/ingester"
+    ignore_errors: yes
+
+- hosts: tag_humios
+  tags: humio
+  become: true
+  tasks:
+    - service:
+        name: "humio@{{ item }}"
+        state: stopped
+      with_sequence: start=0 count=4
+      ignore_errors: yes
+    - file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "/var/log/humio"
+        - "{{ humio_data_path }}"
+        - "/tmp/hsperfdata_humio"
+      ignore_errors: yes
+
+- hosts: tag_kafkas
+  tags: kafka
+  become: true
+  tasks:
+  - service:
+      name: kafka
+      state: stopped
+    ignore_errors: yes
+  - file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+      - "/var/log/kafka"
+      - "{{ kafka_logs_dir }}"
+      - "/tmp/hsperfdata_kafka"
+    ignore_errors: yes
+
+- hosts: tag_zookeepers
+  tags: zookeeper
+  become: true
+  tasks:
+  - service:
+      name: zookeeper
+      state: stopped
+    ignore_errors: yes
+  - file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+      - "/var/log/zookeeper"
+      - "/var/lib/zookeeper"
+      - "/tmp/hsperfdata_zookeeper/"
+    ignore_errors: yes
+

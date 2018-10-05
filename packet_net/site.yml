@@ -1,5 +1,31 @@
 ---
+- hosts: all
+  tags: always
+  roles:
+  - role: ansible-beats
+    beat: "metricbeat"
+    beat_conf:
+      "metricbeat.modules":
+      - "module": "system"
+        "metricsets":
+          - "cpu"
+          - "load"
+          - "core"
+          - "diskio"
+          - "filesystem"
+          - "fsstat"
+          - "memory"
+          - "network"
+          - "process"
+          - "socket"
+        "enabled": true
+        "period": "10s"
+        "processes": [".*"]
+        "cpu_ticks": false
+
+
 - hosts: tag_zookeepers
+  tags: zookeeper
   become: true
   vars:
     zookeeper_url: http://dk.mirrors.quenda.co/apache/zookeeper/zookeeper-3.4.12/zookeeper-3.4.12.tar.gz
@@ -14,6 +40,7 @@
        {{- ips -}}"
 
 - hosts: tag_kafkas
+  tags: kafka
   serial: 1
   become: true
   roles:
@@ -25,13 +52,52 @@
        {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['ansible_bond0_0'].ipv4.address)) }}
        {%- endfor %}
        {{- ips -}}"
+      kafka_broker_id: "{{ ansible_local['cluster_index'] }}"
       kafka_listeners:
         - host: "{{ ansible_bond0_0.ipv4.address }}"
 
 - hosts: tag_humios
+  tags: humio
   serial: 1
   become: true
   roles:
+    - role: "ansible-beats"
+      beat: "filebeat"
+      beat_conf:
+        "filebeat":
+          "inputs":
+            - paths:
+              - /var/log/syslog
+              - /var/log/auth.log
+              fields:
+                "@type": syslog-utc
+                "@tags": ["@host", "@type"]
+            - paths:
+              - /var/log/humio/*/humio-debug.log
+              fields:
+                "@type": humio
+                "@tags": ["@host", "@type"]
+              multiline:
+                pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+                negate: true
+                match: after
+            - paths:
+              - /var/log/kafka/server.log
+              fields:
+                "@type": kafka
+                "@tags": ["@host", "@type"]
+              multiline:
+                pattern: '^\[[0-9]{4}-[0-9]{2}-[0-9]{2}'
+                negate: true
+                match: after
+    - role: entercloudsuite.haproxy
+      haproxy_conf: |
+        listen web
+          mode http
+          bind *:80
+          server humio-0 127.0.0.1:8080 maxconn 64
+          server humio-1 127.0.0.1:8081 maxconn 64
+
     - role: humio.java
     - role: humio.server
       zookeeper_hosts: "
@@ -50,15 +116,18 @@
       humio_config:
 ##        all: "FILE=humio_config"
         "0": "EXTERNAL_URL=http://{{ ansible_bond0_0.ipv4.address }}:8080"
+        "1": "EXTERNAL_URL=http://{{ ansible_bond0_0.ipv4.address }}:8081"
 
 - hosts: localhost
   connection: local
   tasks:
     - name: Rebalance partitions
+      tags: humio
       uri:
-        url: http://{{ hostvars[groups['tag_humios']|random]['ansible_bond0'].ipv4.address }}:8080/api/v1/clusterconfig/partitions/setdefaults
+        url: "http://{{ hostvars[groups['tag_humios']|random]['ansible_bond0'].ipv4.address }}:8080/api/v1/clusterconfig/partitions/setdefaults"
         method: POST
     - name: Create repository
+      tags: humio
       uri:
         url: "http://{{ hostvars[groups['tag_humios']|random]['ansible_bond0'].ipv4.address }}:8080/graphql"
         method: POST
@@ -67,11 +136,16 @@
           {
             "query":"mutation {createRepository(name: \"dataspace0\") {__typename}}"
           }
+    - debug:
+        msg: "Congratulations. Humio is now available at http://{{ http://{{ hostvars[groups['tag_humios']|random]['ansible_bond0'].ipv4.address }}:8080"
 
 - hosts: tag_ingesters
+  tags: ingest
   roles:
     - role: ingester
       vars:
-        ingest_baseurls: "http://{{ hostvars[groups['tag_humios']|random]['ansible_bond0'].ipv4.address }}:8080"
-        ingest_tens_gb_per_day: 10
-        ingest_users: 1
+#        ingest_baseurls: "{% for host in groups['tag_humios'] -%}http://{{ hostvars[host]['ansible_bond0_0'].ipv4.address }}:8080,http://{{ hostvars[host]['ansible_bond0_0'].ipv4.address }}:8081{% if not loop.last %},{% endif %}{%- endfor %}"
+        ingest_baseurls: "{% for host in groups['tag_humios'] -%}http://{{ hostvars[host]['ansible_bond0_0'].ipv4.address }}:80{% if not loop.last %},{% endif %}{%- endfor %}"
+        ingest_instances: 4
+        ingest_users: 8
+        ingest_tens_gb_per_day: 250

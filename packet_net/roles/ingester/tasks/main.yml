@@ -23,10 +23,17 @@
   copy:
     src: "perftest.jar"
     dest: "/usr/lib/ingester/perftest.jar"
-  notify: Restart ingester
+  notify: Restart ingesters
 
-- name: Add systemd service
+- name: Add systemd services
   template:
-    src: ingester.service.j2
-    dest: "/etc/systemd/system/ingester.service"
-  notify: Restart ingester
+    src: "ingester@.service.j2"
+    dest: "/etc/systemd/system/ingester@.service"
+  notify: Restart ingesters
+
+- service:
+    name: "ingester@{{ item }}"
+    daemon_reload: yes
+    enabled: yes
+    state: started
+  with_sequence: count={{ ingest_instances }}
