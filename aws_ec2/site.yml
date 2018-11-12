@@ -1,14 +1,22 @@
 ---
-- hosts: all
-  gather_facts: False
-  become: true
-  pre_tasks:
-  - raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
-    changed_when: false
-  - setup:
+
+- hosts: localhost
+  connection: local
+  tasks:
+    - name: Download Kafka
+      get_url:
+        url: http://mirrors.ae-online.de/apache/kafka/1.0.1/kafka_2.12-1.0.1.tgz
+        dest: files/kafka_2.12-1.0.1.tgz
+      tags: kafka
+    - name: Download Humio
+      get_url:
+        url: "https://repo.humio.com/repository/maven-public/com/humio/server/{{ humio_version }}/server-{{ humio_version }}.jar"
+        dest: "files/server-{{ humio_version }}.jar"
+      tags: humio
 
 - hosts: security_group_zookeepers
   become: true
+  tags: zookeeper
   roles:
     - role: humio.java
     - role: AnsibleShipyard.ansible-zookeeper
@@ -21,11 +29,13 @@
        {{- ips -}}"
 
 - hosts: security_group_kafkas
+  tags: kafka
   become: true
   roles:
     - role: humio.java
     - role: humio.kafka
       kafka_broker_id: "{{ ec2_tag_cluster_index }}"
+      kafka_mirror: "master"
       zookeeper_hosts: "
        {%- set ips = [] %}
        {%- for host in groups['security_group_zookeepers'] %}
@@ -36,6 +46,7 @@
         - host: "{{ ec2_private_ip_address }}"
 
 - hosts: security_group_humios
+  tags: humio
   become: true
   serial: 1
   roles:
@@ -53,12 +64,14 @@
        {{- ips.append(dict(id=hostvars[host]['ec2_tag_cluster_index'], host=host, ip=hostvars[host].ec2_private_ip_address)) }}
        {%- endfor %}
        {{- ips -}}"
+      humio_mirror: "master"
       humio_config:
 ##        all: "FILE=humio_config"
         "0": "EXTERNAL_URL=http://{{ ec2_private_ip_address }}:8080"
 
 - hosts: localhost
   connection: local
+  tags: humio
   tasks:
   - name: Rebalance partitions
     tags: humio
