@@ -8,20 +8,41 @@ Requirements
 
 ## Getting started
 
-## Spinning up a new environment
+Make sure you have your AWS access keys, default region and the name of your key pair configured, i.e.
 
-We are still working on script for spinning up a machines with Terraform, so for now this is a manual process.
+```bash
+export AWS_ACCESS_KEY_ID="AK123"
+export AWS_SECRET_ACCESS_KEY="abc123"
+export AWS_DEFAULT_REGION="<aws region>"
+export TF_VAR_aws_key_name="<aws key pair name>"
+```
 
-A quick walkthrough for creating machines
+Initialise the workspace
 
-1. Create the number of EC2 Ubuntu machines you prefer. Recommended is at least 3 nodes. Make sure you have SSH access to the machines.
-2. Add a `cluster_index` tag with a consecutive number starting from 1 as the value to each machine.
-3. Create the following three security groups:
-  * zookeepers, allowing incoming traffic on port 2181/TCP, 2888/TCP, and 3888/TCP from private IPs
-  * kafkas, allowing incoming traffic on port 9092/TCP from private IPs
-  * humios, alkowing incoming traffic on port 8080/TCP from private IPs
-4. Add the first three machines to the _zookeepers_ security group.
-5. Add all machines to the _kafkas_ and _humios_ security groups.
+```bash
+terraform init
+```
+
+With that, Terraform is ready to spin up a new environment
+
+```bash
+terraform apply
+```
+
+In this demo we will configure the following parts
+* VPC with an Internet Gateway
+* A primary and secondary (currently unused) subnets
+* Security groups
+  * `main`, for providing SSH access everywhere
+  * `zookeepers`, `kafkas`, `humios`, for internal communications and Ansible grouping
+  * `ui-public`, `ingest-public` for UI and Ingest load balancers
+* Application Load Balancers
+  * `ui`, exposes port 80 round-robin load balancing with stickyness
+  * `ingest`, exposes port 80 and 9200 round-robin load balancing
+* Target groups
+* Instances
+  * 3 primary nodes with Zookeeper, Kafka and Humio
+  * (optional) 5 secondary nodes with Kafka and Humio
 
 ## Provisioning Humio
 
@@ -32,20 +53,14 @@ ansible-galaxy install --role-file=requirements.yml
 pip install boto3 --user
 ```
 
-Second, the two required environment variables for `ec2.py` dynamic inventory script should be configured with your access key
-```bash
-export AWS_ACCESS_KEY_ID='AK123'
-export AWS_SECRET_ACCESS_KEY='abc123'
-``` 
-
 Finally, the cluster can be provisioned with the `site.yml` playbook
 
 ```bash
 ansible-playbook site.yml
 ```
 
-Once the cluster is up and running, the Humio web interface should be available on TCP port 8080 of any of the hosts in the `tag_humios` group,
+Once the cluster is up and running, the Humio web interface should be on the ui load balancer. Bare in mind it can take up to 2 minutes before the nodes are deemed healthy by the Target Group
 
 ```bash
-open http://$(./ec2.py | jq -r '.security_group_humios[0]'):8080
+open $(terraform output "Humio ui")
 ```
