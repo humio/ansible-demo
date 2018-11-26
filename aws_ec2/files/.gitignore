@@ -1,2 +1,4 @@
+/zulu*.rpm
+/zookeeper-*.tar.gz
 /kafka_*.tgz
 /server-*.jar

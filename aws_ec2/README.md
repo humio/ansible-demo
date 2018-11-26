@@ -64,3 +64,19 @@ Once the cluster is up and running, the Humio web interface should be on the ui 
 ```bash
 open $(terraform output "Humio ui")
 ```
+
+## Selecting Operating System
+
+The operating system can be controlled with the `aws_ami_filter` Terraform variable, which will select an image on the AWS AMI name.
+
+### RedHat Enterprise Linux
+```bash
+export TF_VAR_aws_ami_filter="RHEL-7.5_HVM_GA-*-x86_64-1-Hourly2-GP2"
+terraform apply
+```
+
+### CentOS Linux
+```bash
+export TF_VAR_aws_ami_filter="CentOS Linux 7 x86_64 HVM EBS ENA 1805_01*"
+terraform apply
+```
