@@ -90,14 +90,14 @@ resource "aws_security_group" "humios" {
 
   ingress {
     from_port   = 8080
-    to_port     = 8080
+    to_port     = 8081
     protocol    = "TCP"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
     from_port   = 9200
-    to_port     = 9200
+    to_port     = 9201
     protocol    = "TCP"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -292,19 +292,40 @@ USERDATA
   }
 }
 
-resource "aws_lb_target_group_attachment" "zkh-ui" {
+resource "aws_lb_target_group_attachment" "zkh-ui-0" {
   target_group_arn = "${aws_lb_target_group.ui-http.arn}"
   target_id = "${element(aws_instance.zk-kafka-humios.*.id, count.index)}"
+  port = 8080
   count = "${var.zkh_instances}"
 }
-resource "aws_lb_target_group_attachment" "zkh-ingest-http" {
+resource "aws_lb_target_group_attachment" "zkh-ui-1" {
+  target_group_arn = "${aws_lb_target_group.ui-http.arn}"
+  target_id = "${element(aws_instance.zk-kafka-humios.*.id, count.index)}"
+  port = 8081
+  count = "${var.zkh_instances}"
+}
+resource "aws_lb_target_group_attachment" "zkh-ingest-http-0" {
   target_group_arn = "${aws_lb_target_group.ingest-api.arn}"
   target_id = "${element(aws_instance.zk-kafka-humios.*.id, count.index)}"
+  port = 8080
   count = "${var.zkh_instances}"
 }
-resource "aws_lb_target_group_attachment" "zkh-ingest-es" {
+resource "aws_lb_target_group_attachment" "zkh-ingest-http-1" {
+  target_group_arn = "${aws_lb_target_group.ingest-api.arn}"
+  target_id = "${element(aws_instance.zk-kafka-humios.*.id, count.index)}"
+  port = 8081
+  count = "${var.zkh_instances}"
+}
+resource "aws_lb_target_group_attachment" "zkh-ingest-es-0" {
   target_group_arn = "${aws_lb_target_group.ingest-es.arn}"
   target_id = "${element(aws_instance.zk-kafka-humios.*.id, count.index)}"
+  port = 9200
+  count = "${var.zkh_instances}"
+}
+resource "aws_lb_target_group_attachment" "zkh-ingest-es-1" {
+  target_group_arn = "${aws_lb_target_group.ingest-es.arn}"
+  target_id = "${element(aws_instance.zk-kafka-humios.*.id, count.index)}"
+  port = 9201
   count = "${var.zkh_instances}"
 }
 
