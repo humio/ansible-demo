@@ -73,10 +73,17 @@ The operating system can be controlled with the `aws_ami_filter` Terraform varia
 ```bash
 export TF_VAR_aws_ami_filter="RHEL-7.5_HVM_GA-*-x86_64-1-Hourly2-GP2"
 terraform apply
+ansible-playbook -u ec2-user site.yml
 ```
 
 ### CentOS Linux
+
+Bare in mind that for this particular AMI, you'll need to Accept Terms and Conditions
+
 ```bash
 export TF_VAR_aws_ami_filter="CentOS Linux 7 x86_64 HVM EBS ENA 1805_01*"
 terraform apply
+# open the url printed in output and accept the T&Cs if you haven't already
+terraform apply
+ansible-playbook -u centos site.yml
 ```
