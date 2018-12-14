@@ -273,7 +273,7 @@ resource "aws_network_interface" "zkh-nic" {
 resource "aws_instance" "zk-kafka-humios" {
   count = "${var.zkh_instances}"
   ami = "${data.aws_ami.ami.image_id}"
-  instance_type = "m4.xlarge"
+  instance_type = "${var.humio_plan}"
   key_name = "${var.aws_key_name}"
 
   user_data = <<USERDATA
@@ -318,7 +318,7 @@ resource "aws_network_interface" "kh-nic" {
 resource "aws_instance" "kafka-humios" {
   count = "${var.kh_instances}"
   ami = "${data.aws_ami.ami.image_id}"
-  instance_type = "m4.xlarge"
+  instance_type = "${var.humio_plan}"
   key_name = "${var.aws_key_name}"
 
   user_data = <<USERDATA
@@ -355,4 +355,12 @@ resource "aws_lb_target_group_attachment" "kh-ingest-es" {
 
 output "Humio ui" {
   value = "http://${aws_lb.ui.dns_name}"
+}
+
+output "Humio ingest API" {
+  value = "http://${aws_lb.ingest.dns_name}"
+}
+
+output "Humio ingest Elastic" {
+  value = "http://${aws_lb.ingest.dns_name}:9200"
 }
