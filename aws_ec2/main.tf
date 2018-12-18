@@ -291,6 +291,67 @@ USERDATA
     Name = "${format("humio%02d", count.index + 1)}"
     cluster_index = "${count.index + 1}"
   }
+
+}
+
+resource "aws_ebs_volume" "humios-volume-c" {
+  availability_zone = "${aws_instance.humios.availability_zone}"
+  type              = "gp2"
+  size              = 100
+}
+
+resource "aws_volume_attachment" "humios-volume-c-attachment" {
+  device_name = "/dev/xvdc"
+  instance_id = "${aws_instance.humios.id}"
+  volume_id   = "${aws_ebs_volume.humios-volume-c.id}"
+}
+
+resource "aws_ebs_volume" "humios-volume-d" {
+  availability_zone = "${aws_instance.humios.availability_zone}"
+  type              = "gp2"
+  size              = 100
+}
+
+resource "aws_volume_attachment" "humios-volume-d-attachment" {
+  device_name = "/dev/xvdd"
+  instance_id = "${aws_instance.humios.id}"
+  volume_id   = "${aws_ebs_volume.humios-volume-d.id}"
+}
+
+resource "aws_ebs_volume" "humios-volume-e" {
+  availability_zone = "${aws_instance.humios.availability_zone}"
+  type              = "gp2"
+  size              = 100
+}
+
+resource "aws_volume_attachment" "humios-volume-e-attachment" {
+  device_name = "/dev/xvde"
+  instance_id = "${aws_instance.humios.id}"
+  volume_id   = "${aws_ebs_volume.humios-volume-e.id}"
+}
+
+resource "aws_ebs_volume" "humios-volume-f" {
+  availability_zone = "${aws_instance.humios.availability_zone}"
+  type              = "gp2"
+  size              = 100
+}
+
+resource "aws_volume_attachment" "humios-volume-f-attachment" {
+  device_name = "/dev/xvdf"
+  instance_id = "${aws_instance.humios.id}"
+  volume_id   = "${aws_ebs_volume.humios-volume-e.id}"
+}
+
+resource "aws_ebs_volume" "humios-volume-g" {
+  availability_zone = "${aws_instance.humios.availability_zone}"
+  type              = "gp2"
+  size              = 100
+}
+
+resource "aws_volume_attachment" "humios-volume-g-attachment" {
+  device_name = "/dev/xvdg"
+  instance_id = "${aws_instance.humios.id}"
+  volume_id   = "${aws_ebs_volume.humios-volume-f.id}"
 }
 
 resource "aws_lb_target_group_attachment" "zkh-ui" {
