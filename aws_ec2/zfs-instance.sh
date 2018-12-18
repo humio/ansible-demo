@@ -24,6 +24,8 @@ zpool create ${POOL} -f \
 
 # Remove default systemd ZFS-related services, they don't handle host migration.
 for f in $(find /lib/systemd/ | grep zfs); do rm -f $f; done
+for f in $(find /etc/systemd/ | grep zfs); do rm -f $f; done
+rm -f /etc/systemd/system/zed.service
 rm -f /lib/systemd/system/zed.service
 rm -f /lib/systemd/system/zfs-import.service
 rm -f /lib/systemd/system/ephemeral-disk-warning.service
