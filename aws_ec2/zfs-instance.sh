@@ -1,7 +1,41 @@
 #!/bin/bash
 set -euxo pipefail
 
-  instance_type = "i3.4xlarge"
+#instance_type = "i3.4xlarge"
+
+bytes() {
+    echo $1 | echo $((`sed 's/[ ]*//g;s/[bB]$//;s/^.*[^0-9gkmt].*$//;s/t$/Xg/;s/g$/Xm/;s/m$/Xk/;s/k$/X/;s/X/*1024/g'`))
+}
+
+# Returns a percentage of memory with jitter.
+# examples:
+#   HALF=$(mem .5) will be half the physical memory in bytes
+#   AROUND_HALF=$(mem .5 .1) will be half the physical memory in bytes with a 1% variation (aka "jitter")
+mem() {
+    SEED=$RANDOM
+    PCT=0
+    JITTER=0
+    OVERHEAD=0
+    if [ $# -gt 0 ]; then
+        PCT=${1:=0}
+        if [ $# -eq 2 ]; then
+            JITTER=$2
+	    if [ $# -eq 3 ]; then
+		OVERHEAD=$3
+	    fi
+        fi
+    else
+        echo 0
+    fi
+    echo $(bytes $(cat /proc/meminfo | awk -v pct=$PCT -v seed=$SEED -v jitter=$JITTER -v overhead=$OVERHEAD 'BEGIN{ srand(seed) } /MemTotal/{ p = sprintf("%.0f", (($2 - overhead) * pct) / 1024 ) } END{ if (jitter > 0) { printf("%.0f\n", p - rand() % jitter * p) } else { printf("%.0f\n", p ) } }')m)
+}
+
+blk() {
+    BYTES=0
+    for d in $@; do BYTES=$(($BYTES + $(blockdev --getsize64 /dev/$d))); done
+    echo $BYTES
+}
+
 
 # Install ZFS
 apt-get -qqy install zfsutils-linux
@@ -30,6 +64,13 @@ rm -f /lib/systemd/system/zed.service
 rm -f /lib/systemd/system/zfs-import.service
 rm -f /lib/systemd/system/ephemeral-disk-warning.service
 
+# Use 85% of the RAM available after taking into account the 1GiB for Kafka and 32GiB for Humio.
+ARC_MAX=$(mem .85 0 $(bytes $((1 + 32))g))
+# Use at most 1/4th of the available RAM in ARC for metadata.
+ARC_META_LIMIT=$(($ARC_MAX *.25))
+# L2ARC is the combined block size of all the available ephemeral drives.
+L2ARC_SIZE=$(blk $EPH_DEVS)
+
 cat > /lib/systemd/system/zfs.service <<EOF
 [Unit]
 DefaultDependencies=no
@@ -47,9 +88,14 @@ Restart=always
 EOF
 
 cat > /etc/modprobe.d/zfs.conf <<EOF
-options zfs zfs_arc_max=23061876736
-options zfs zfs_arc_meta_limit=838860800
+# Determines the maximum size of the ZFS Adjustable Replacement Cache (ARC)
+options zfs zfs_arc_max=${ARC_MAX}
+options zfs zfs_arc_meta_limit=${ARC_META_LIMIT}
+# This tunable limits the maximum writing speed onto l2arc. The default is 8MB/s. So depending on the type of cache drives that the system used, it is desirable to increase this limit several times. But remember not to crank it too high to impact reading from the cache drives.
+# 2^29 or 512MiB
 options zfs l2arc_write_max=536870912
+#  This tunable increases the above writing speed limit after system boot and before ARC has filled up. The default is also 8MB/s. During the above period, there should be no read request on L2ARC. This should also be increased depending on the system.
+# 2^27 or 128MiB
 options zfs l2arc_write_boost=134217728
 options zfs l2arc_headroom=4
 options zfs l2arc_headroom_boost=16
