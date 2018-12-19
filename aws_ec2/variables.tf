@@ -30,11 +30,16 @@ Options:
 DESCRIPTION
 }
 
-variable "zkh_instances" {
+variable "zookeepers" {
   type = "string"
   default = "3"
 }
-variable "kh_instances" {
+variable "instances" {
   type = "string"
-  default = "5"
+  default = "8"
+}
+
+variable "zones" {
+  type = "string"
+  default = "2"
 }
