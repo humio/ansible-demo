@@ -294,10 +294,22 @@ USERDATA
 
 }
 
+resource "aws_ebs_volume" "humios-volume-b" {
+  availability_zone = "${aws_instance.humios.availability_zone}"
+  type              = "${var.ebs_vol_type}"
+  size              = ${var.ebs_vol_size_gb}
+}
+
+resource "aws_volume_attachment" "humios-volume-b-attachment" {
+  device_name = "/dev/xvdc"
+  instance_id = "${aws_instance.humios.id}"
+  volume_id   = "${aws_ebs_volume.humios-volume-c.id}"
+}
+
 resource "aws_ebs_volume" "humios-volume-c" {
   availability_zone = "${aws_instance.humios.availability_zone}"
-  type              = "gp2"
-  size              = 100
+  type              = "${var.ebs_vol_type}"
+  size              = ${var.ebs_vol_size_gb}
 }
 
 resource "aws_volume_attachment" "humios-volume-c-attachment" {
@@ -308,8 +320,8 @@ resource "aws_volume_attachment" "humios-volume-c-attachment" {
 
 resource "aws_ebs_volume" "humios-volume-d" {
   availability_zone = "${aws_instance.humios.availability_zone}"
-  type              = "gp2"
-  size              = 100
+  type              = "${var.ebs_vol_type}"
+  size              = ${var.ebs_vol_size_gb}
 }
 
 resource "aws_volume_attachment" "humios-volume-d-attachment" {
@@ -320,8 +332,8 @@ resource "aws_volume_attachment" "humios-volume-d-attachment" {
 
 resource "aws_ebs_volume" "humios-volume-e" {
   availability_zone = "${aws_instance.humios.availability_zone}"
-  type              = "gp2"
-  size              = 100
+  type              = "${var.ebs_vol_type}"
+  size              = ${var.ebs_vol_size_gb}
 }
 
 resource "aws_volume_attachment" "humios-volume-e-attachment" {
@@ -332,8 +344,8 @@ resource "aws_volume_attachment" "humios-volume-e-attachment" {
 
 resource "aws_ebs_volume" "humios-volume-f" {
   availability_zone = "${aws_instance.humios.availability_zone}"
-  type              = "gp2"
-  size              = 100
+  type              = "${var.ebs_vol_type}"
+  size              = ${var.ebs_vol_size_gb}
 }
 
 resource "aws_volume_attachment" "humios-volume-f-attachment" {
@@ -344,8 +356,8 @@ resource "aws_volume_attachment" "humios-volume-f-attachment" {
 
 resource "aws_ebs_volume" "humios-volume-g" {
   availability_zone = "${aws_instance.humios.availability_zone}"
-  type              = "gp2"
-  size              = 100
+  type              = "${var.ebs_vol_type}"
+  size              = ${var.ebs_vol_size_gb}
 }
 
 resource "aws_volume_attachment" "humios-volume-g-attachment" {

@@ -1,0 +1,7 @@
+; random read of 128mb of data
+
+[random-read]
+rw=randread
+size=12g
+directory=/var/fio/a
+

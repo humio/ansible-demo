@@ -1,7 +1,9 @@
 #!/bin/bash
 set -euxo pipefail
 
-#instance_type = "i3.4xlarge"
+#instance_type = "c5d.4xlarge"
+#sudo systemctl daemon-reload
+
 
 bytes() {
     echo $1 | echo $((`sed 's/[ ]*//g;s/[bB]$//;s/^.*[^0-9gkmt].*$//;s/t$/Xg/;s/g$/Xm/;s/m$/Xk/;s/k$/X/;s/X/*1024/g'`))
@@ -43,18 +45,24 @@ modprobe zfs
 
 # Combine the EBS drives into a pool of storage.
 POOL=tank
-EBS_DEVS="xvdc xvdd xvde xvdg"
+EBS_DEVS="xvda xvdc xvdd xvde xvdf"
 EPH_DEVS="nvme0n1 nvme1n1"
-zpool create ${POOL} -f \
-    -o ashift=12 \
+SPARE_DEVS="xvdg"
+zpool create ${POOL} raidz2 -f \
+    -o ashift=16 \
+    -o autoexpand=on \
+    -o autoreplace=on \
+    -o exec=off \
+    -O logbias=throughput \
     -O atime=off \
     -O compression=lz4 \
-    -O redundant_metadata=most \
-    -O normalization=formD \
-    -O recordsize=1M \
     -O xattr=off \
     ${EBS_DEVS} \
     cache ${EPH_DEVS}
+
+if [ "${SPARE_DEVS}x" -ne "x" ]; then
+    for d in ${SPARE_DEVS}; do zpool add ${POOL} spare $d; done
+fi
 
 # Remove default systemd ZFS-related services, they don't handle host migration.
 for f in $(find /lib/systemd/ | grep zfs); do rm -f $f; done
@@ -81,8 +89,8 @@ Type=simple
 ExecStartPre=/sbin/modprobe zfs
 ExecStartPre=-/sbin/zpool import -a
 ExecStartPre=/sbin/zfs mount -a
-ExecStartPre=-/sbin/zpool remove tank nvme0n1 nvme1n1
-ExecStartPre=/sbin/zpool add data cache  nvme0n1 nvme1n1 -f
+ExecStartPre=-/sbin/zpool remove $POOL} ${EPH_DEVS}
+ExecStartPre=/sbin/zpool add ${POOL} cache ${EPH_DEVS} -f
 ExecStart=/usr/bin/zed -F
 Restart=always
 EOF

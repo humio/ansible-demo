@@ -1,0 +1,13 @@
+[Unit]
+DefaultDependencies=no
+Before=local-fs.target
+
+[Service]
+Type=simple
+ExecStartPre=/sbin/modprobe zfs
+ExecStartPre=-/sbin/zpool import -a
+ExecStartPre=/sbin/zfs mount -a
+ExecStartPre=-/sbin/zpool remove tank nvme0n1 nvme1n1
+ExecStartPre=/sbin/zpool add tank cache nvme0n1 nvme1n1 -f
+ExecStart=/usr/bin/zed -F
+Restart=always

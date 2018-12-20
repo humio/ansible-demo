@@ -1,0 +1,11 @@
+; same as random-read-test.fio 
+[random-read]
+rw=randread
+size=12g
+directory=/var/fio/b
+
+ioengine=libaio
+iodepth=8
+direct=1
+invalidate=1
+
