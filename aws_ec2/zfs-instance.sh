@@ -72,8 +72,8 @@ rm -f /lib/systemd/system/zed.service
 rm -f /lib/systemd/system/zfs-import.service
 rm -f /lib/systemd/system/ephemeral-disk-warning.service
 
-# Use 85% of the RAM available after taking into account the 1GiB for Kafka and 32GiB for Humio.
-ARC_MAX=$(mem .85 0 $(bytes $((1 + 32))g))
+# Use 75% of the RAM available after taking into account the 1GiB for Kafka and 32GiB for Humio.
+ARC_MAX=$(mem .75 0 $(bytes $((1 + 32))g))
 # Use at most 1/4th of the available RAM in ARC for metadata.
 ARC_META_LIMIT=$(($ARC_MAX *.25))
 # L2ARC is the combined block size of all the available ephemeral drives.
@@ -131,6 +131,3 @@ sudo zfs create -o com.sun:auto-snapshot=false -o setuid=off -o mountpoint=/var/
 #USERDATA
 #  }
 
-# /var/humio
-# /var/kafka
-# /var/lib/zookeeper

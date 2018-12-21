@@ -43,3 +43,13 @@ variable "zones" {
   type = "string"
   default = "2"
 }
+
+variable "ebs_vol_type" {
+  type = "string"
+  default = "io1"
+}
+
+variable "ebs_vol_size_gb" {
+  type = "string"
+  default = "256"
+}
