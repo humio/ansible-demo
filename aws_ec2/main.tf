@@ -304,7 +304,7 @@ resource "aws_ebs_volume" "humios-volume-b" {
 
 resource "aws_volume_attachment" "humios-volume-b-attachment" {
   device_name = "/dev/xvdc"
-  instance_id = "${aws_instance.humios.id}"
+  instance_id = "${element(aws_instance.humios.*.id, count.index)}"
   volume_id   = "${aws_ebs_volume.humios-volume-c.id}"
 }
 
@@ -316,7 +316,7 @@ resource "aws_ebs_volume" "humios-volume-c" {
 
 resource "aws_volume_attachment" "humios-volume-c-attachment" {
   device_name = "/dev/xvdc"
-  instance_id = "${aws_instance.humios.id}"
+  instance_id = "${element(aws_instance.humios.*.id, count.index)}"
   volume_id   = "${aws_ebs_volume.humios-volume-c.id}"
 }
 
@@ -328,7 +328,7 @@ resource "aws_ebs_volume" "humios-volume-d" {
 
 resource "aws_volume_attachment" "humios-volume-d-attachment" {
   device_name = "/dev/xvdd"
-  instance_id = "${aws_instance.humios.id}"
+  instance_id = "${element(aws_instance.humios.*.id, count.index)}"
   volume_id   = "${aws_ebs_volume.humios-volume-d.id}"
 }
 
@@ -340,7 +340,7 @@ resource "aws_ebs_volume" "humios-volume-e" {
 
 resource "aws_volume_attachment" "humios-volume-e-attachment" {
   device_name = "/dev/xvde"
-  instance_id = "${aws_instance.humios.id}"
+  instance_id = "${element(aws_instance.humios.*.id, count.index)}"
   volume_id   = "${aws_ebs_volume.humios-volume-e.id}"
 }
 
@@ -352,7 +352,7 @@ resource "aws_ebs_volume" "humios-volume-f" {
 
 resource "aws_volume_attachment" "humios-volume-f-attachment" {
   device_name = "/dev/xvdf"
-  instance_id = "${aws_instance.humios.id}"
+  instance_id = "${element(aws_instance.humios.*.id, count.index)}"
   volume_id   = "${aws_ebs_volume.humios-volume-e.id}"
 }
 
@@ -364,7 +364,7 @@ resource "aws_ebs_volume" "humios-volume-g" {
 
 resource "aws_volume_attachment" "humios-volume-g-attachment" {
   device_name = "/dev/xvdg"
-  instance_id = "${aws_instance.humios.id}"
+  instance_id = "${element(aws_instance.humios.*.id, count.index)}"
   volume_id   = "${aws_ebs_volume.humios-volume-f.id}"
 }
 
