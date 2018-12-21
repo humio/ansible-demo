@@ -1,6 +1,6 @@
 variable "humio_plan" {
   type = "string"
-  default = "m4.xlarge"
+  default = "c5d.4xlarge"
   description = <<EOS
 The list of Packet machines. Check curl -s -H "Accept: application/json" -H "X-Auth-Token: $\{TF_VAR_packet_auth_token\}" "https://api.packet.net/plans" | jq '.plans[] | [.name, .slug, .description, .pricing.hour]' to see a list of machines
 EOS

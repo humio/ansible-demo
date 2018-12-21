@@ -275,6 +275,8 @@ resource "aws_instance" "humios" {
   count = "${var.instances}"
   ami = "${data.aws_ami.ami.image_id}"
   instance_type = "${var.humio_plan}"
+  ebs_optimized = true
+  disable_api_termination = false
   key_name = "${var.aws_key_name}"
 
   user_data = <<USERDATA
@@ -295,7 +297,7 @@ USERDATA
 }
 
 resource "aws_ebs_volume" "humios-volume-b" {
-  availability_zone = "${aws_instance.humios.availability_zone}"
+  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
   type              = "${var.ebs_vol_type}"
   size              = "${var.ebs_vol_size_gb}"
 }
@@ -307,7 +309,7 @@ resource "aws_volume_attachment" "humios-volume-b-attachment" {
 }
 
 resource "aws_ebs_volume" "humios-volume-c" {
-  availability_zone = "${aws_instance.humios.availability_zone}"
+  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
   type              = "${var.ebs_vol_type}"
   size              = "${var.ebs_vol_size_gb}"
 }
@@ -319,7 +321,7 @@ resource "aws_volume_attachment" "humios-volume-c-attachment" {
 }
 
 resource "aws_ebs_volume" "humios-volume-d" {
-  availability_zone = "${aws_instance.humios.availability_zone}"
+  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
   type              = "${var.ebs_vol_type}"
   size              = "${var.ebs_vol_size_gb}"
 }
@@ -331,7 +333,7 @@ resource "aws_volume_attachment" "humios-volume-d-attachment" {
 }
 
 resource "aws_ebs_volume" "humios-volume-e" {
-  availability_zone = "${aws_instance.humios.availability_zone}"
+  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
   type              = "${var.ebs_vol_type}"
   size              = "${var.ebs_vol_size_gb}"
 }
@@ -343,7 +345,7 @@ resource "aws_volume_attachment" "humios-volume-e-attachment" {
 }
 
 resource "aws_ebs_volume" "humios-volume-f" {
-  availability_zone = "${aws_instance.humios.availability_zone}"
+  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
   type              = "${var.ebs_vol_type}"
   size              = "${var.ebs_vol_size_gb}"
 }
@@ -355,7 +357,7 @@ resource "aws_volume_attachment" "humios-volume-f-attachment" {
 }
 
 resource "aws_ebs_volume" "humios-volume-g" {
-  availability_zone = "${aws_instance.humios.availability_zone}"
+  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
   type              = "${var.ebs_vol_type}"
   size              = "${var.ebs_vol_size_gb}"
 }
