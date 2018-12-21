@@ -52,7 +52,7 @@ zpool create ${POOL} raidz2 -f \
     -o ashift=16 \
     -o autoexpand=on \
     -o autoreplace=on \
-    -o exec=off \
+    -O exec=off \
     -O logbias=throughput \
     -O atime=off \
     -O compression=lz4 \
@@ -60,22 +60,22 @@ zpool create ${POOL} raidz2 -f \
     ${EBS_DEVS} \
     cache ${EPH_DEVS}
 
-if [ "${SPARE_DEVS}x" -ne "x" ]; then
+if [ "${SPARE_DEVS}x" != "x" ]; then
     for d in ${SPARE_DEVS}; do zpool add ${POOL} spare $d; done
 fi
 
 # Remove default systemd ZFS-related services, they don't handle host migration.
-for f in $(find /lib/systemd/ | grep zfs); do rm -f $f; done
-for f in $(find /etc/systemd/ | grep zfs); do rm -f $f; done
+for f in $(find /lib/systemd/ | grep zfs); do rm -rf $f; done
+for f in $(find /etc/systemd/ | grep zfs); do rm -rf $f; done
 rm -f /etc/systemd/system/zed.service
 rm -f /lib/systemd/system/zed.service
 rm -f /lib/systemd/system/zfs-import.service
 rm -f /lib/systemd/system/ephemeral-disk-warning.service
 
 # Use 75% of the RAM available after taking into account the 1GiB for Kafka and 32GiB for Humio.
-ARC_MAX=$(mem .75 0 $(bytes $((1 + 32))g))
+ARC_MAX=$(mem 0.75 0 $(bytes $((1 + 32))g))
 # Use at most 1/4th of the available RAM in ARC for metadata.
-ARC_META_LIMIT=$(($ARC_MAX *.25))
+ARC_META_LIMIT=$(expr $ARC_MAX / 4)
 # L2ARC is the combined block size of all the available ephemeral drives.
 L2ARC_SIZE=$(blk $EPH_DEVS)
 

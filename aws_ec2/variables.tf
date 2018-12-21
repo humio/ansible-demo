@@ -1,5 +1,7 @@
 variable "humio_plan" {
   type = "string"
+  # A "Nitro" based instance for best IO and virtualization performance.
+  # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-types.html#ec2-nitro-instances
   default = "c5d.4xlarge"
   description = <<EOS
 The list of Packet machines. Check curl -s -H "Accept: application/json" -H "X-Auth-Token: $\{TF_VAR_packet_auth_token\}" "https://api.packet.net/plans" | jq '.plans[] | [.name, .slug, .description, .pricing.hour]' to see a list of machines
@@ -36,7 +38,7 @@ variable "zookeepers" {
 }
 variable "instances" {
   type = "string"
-  default = "8"
+  default = "1" # 8
 }
 
 variable "zones" {
@@ -44,12 +46,22 @@ variable "zones" {
   default = "2"
 }
 
+# EBS Volume Types: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSVolumeTypes.html
+
 variable "ebs_vol_type" {
   type = "string"
   default = "io1"
 }
 
+# NOTE: AWS/EC2 requires that `ebs_vol_iops / ebs_vol_size_gb > 50`.
+
 variable "ebs_vol_size_gb" {
   type = "string"
-  default = "256"
+  default = "1000"
 }
+
+variable "ebs_vol_iops" {
+  type = "string"
+  default = "32000"
+}
+
