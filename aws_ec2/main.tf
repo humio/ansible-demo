@@ -297,15 +297,17 @@ USERDATA
 }
 
 resource "aws_ebs_volume" "humios-volume-b" {
+  count = "${var.instances}"
   availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
   type              = "${var.ebs_vol_type}"
   size              = "${var.ebs_vol_size_gb}"
 }
 
 resource "aws_volume_attachment" "humios-volume-b-attachment" {
+  count = "${var.instances}"
   device_name = "/dev/xvdc"
   instance_id = "${element(aws_instance.humios.*.id, count.index)}"
-  volume_id   = "${aws_ebs_volume.humios-volume-c.id}"
+  volume_id   = "${element(aws_ebs_volume.humios-volume-c.*.id), count.index}"
 }
 
 resource "aws_ebs_volume" "humios-volume-c" {
