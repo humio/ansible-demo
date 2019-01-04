@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euxo pipefail
 
-#instance_type = "c5d.4xlarge"
+#instance_type = "c5d.9xlarge"
 #sudo systemctl daemon-reload
 
 
@@ -49,13 +49,13 @@ EBS_DEVS="xvda xvdc xvdd xvde xvdf"
 EPH_DEVS="nvme0n1 nvme1n1"
 SPARE_DEVS="xvdg"
 zpool create ${POOL} raidz2 -f \
-    -o ashift=16 \
+    -o ashift=12 \
     -o autoexpand=on \
     -o autoreplace=on \
     -O exec=off \
     -O logbias=throughput \
     -O atime=off \
-    -O compression=lz4 \
+    -O compression=off \
     -O xattr=off \
     ${EBS_DEVS} \
     cache ${EPH_DEVS}
@@ -89,9 +89,9 @@ Type=simple
 ExecStartPre=/sbin/modprobe zfs
 ExecStartPre=-/sbin/zpool import -a
 ExecStartPre=/sbin/zfs mount -a
-ExecStartPre=-/sbin/zpool remove $POOL} ${EPH_DEVS}
+ExecStartPre=-/sbin/zpool remove $POOL ${EPH_DEVS}
 ExecStartPre=/sbin/zpool add ${POOL} cache ${EPH_DEVS} -f
-ExecStart=/usr/bin/zed -F
+ExecStart=/usr/sbin/zed -F
 Restart=always
 EOF
 
