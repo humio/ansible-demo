@@ -59,3 +59,18 @@ nvme5n1     259:6    0 838.2G  0 disk
 nvme7n1     259:7    0     8G  0 disk
 └─nvme7n1p1 259:8    0     8G  0 part /
 
+
+   20  apt install glances
+   25  apt install iotop
+   44  apt install schedtool
+   54  apt install hwloc
+   73  apt install sysstat
+   79  apt install linux-tools-common
+   84  apt install linux-tools-4.18.0-1007-aws linux-tools-aws
+   95  apt install dstat
+
+   dstat -lrvn 10
+cat /proc/spl/kstat/zfs/arcstats
+
+schedtool –B -a 0x1 8903
+
