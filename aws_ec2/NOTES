@@ -1,4 +1,12 @@
-  234  arcstat -f time,arcsz,mm%,mhit,mread,dread,pread 1
+Outputs:
+
+Humio ingest API = http://humio-ingest-790655390.us-east-2.elb.amazonaws.com
+Humio ingest Elastic = http://humio-ingest-790655390.us-east-2.elb.amazonaws.com:9200
+Humio ui = http://humio-ui-784408560.us-east-2.elb.amazonaws.com
+
+----
+
+234  arcstat -f time,arcsz,mm%,mhit,mread,dread,pread 1
   235  zpool iostat -v tank 5 100
   236  iotop
   237  sudo iftop -nN -o source
@@ -20,14 +28,6 @@ java -jar -Ddatasources=96 -Dbaseurls=http://humio-ingest-304882061.us-east-2.el
 drop([ts]) |
 
 kvParse()
----
-
-Outputs:
-
-Humio ingest API = http://humio-ingest-304882061.us-east-2.elb.amazonaws.com
-Humio ingest Elastic = http://humio-ingest-304882061.us-east-2.elb.amazonaws.com:9200
-Humio ui = http://humio-ui-162894226.us-east-2.elb.amazonaws.com
-
 ---
 root@ip-172-16-1-10:~# lsblk
 NAME        MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT

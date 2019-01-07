@@ -297,88 +297,93 @@ USERDATA
 }
 
 resource "aws_ebs_volume" "humios-volume-b" {
-  count = "${var.instances}"
-  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+  count             = "${var.instances}"
+  availability_zone = "${element(aws_instance.humios.*.availability_zone, count.index)}"
   type              = "${var.ebs_vol_type}"
   size              = "${var.ebs_vol_size_gb}"
   iops              = "${var.ebs_vol_iops}"
 }
 
 resource "aws_volume_attachment" "humios-volume-b-attachment" {
-  count = "${var.instances}"
+  count       = "${var.instances}"
   device_name = "/dev/xvdb"
   instance_id = "${element(aws_instance.humios.*.id, count.index)}"
   volume_id   = "${element(aws_ebs_volume.humios-volume-b.*.id, count.index)}"
 }
 
 resource "aws_ebs_volume" "humios-volume-c" {
-  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+  count             = "${var.instances}"
+  availability_zone = "${element(aws_instance.humios.*.availability_zone, count.index)}"
   type              = "${var.ebs_vol_type}"
   size              = "${var.ebs_vol_size_gb}"
   iops              = "${var.ebs_vol_iops}"
 }
 
 resource "aws_volume_attachment" "humios-volume-c-attachment" {
-  count = "${var.instances}"
+  count       = "${var.instances}"
   device_name = "/dev/xvdc"
   instance_id = "${element(aws_instance.humios.*.id, count.index)}"
   volume_id   = "${element(aws_ebs_volume.humios-volume-c.*.id, count.index)}"
 }
 
 resource "aws_ebs_volume" "humios-volume-d" {
-  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+  count             = "${var.instances}"
+  availability_zone = "${element(aws_instance.humios.*.availability_zone, count.index)}"
   type              = "${var.ebs_vol_type}"
   size              = "${var.ebs_vol_size_gb}"
   iops              = "${var.ebs_vol_iops}"
 }
 
 resource "aws_volume_attachment" "humios-volume-d-attachment" {
-  count = "${var.instances}"
+  count       = "${var.instances}"
   device_name = "/dev/xvdd"
   instance_id = "${element(aws_instance.humios.*.id, count.index)}"
   volume_id   = "${element(aws_ebs_volume.humios-volume-d.*.id, count.index)}"
 }
 
 resource "aws_ebs_volume" "humios-volume-e" {
-  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+  count             = "${var.instances}"
+  availability_zone = "${element(aws_instance.humios.*.availability_zone, count.index)}"
   type              = "${var.ebs_vol_type}"
   size              = "${var.ebs_vol_size_gb}"
   iops              = "${var.ebs_vol_iops}"
 }
 
 resource "aws_volume_attachment" "humios-volume-e-attachment" {
-  count = "${var.instances}"
+  count       = "${var.instances}"
   device_name = "/dev/xvde"
   instance_id = "${element(aws_instance.humios.*.id, count.index)}"
-  volume_id   = "${element(aws_ebs_volume.humios-volume-b.*.id, count.index)}"
+  volume_id   = "${element(aws_ebs_volume.humios-volume-e.*.id, count.index)}"
 }
 
 resource "aws_ebs_volume" "humios-volume-f" {
-  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+  count             = "${var.instances}"
+  availability_zone = "${element(aws_instance.humios.*.availability_zone, count.index)}"
   type              = "${var.ebs_vol_type}"
   size              = "${var.ebs_vol_size_gb}"
   iops              = "${var.ebs_vol_iops}"
 }
 
 resource "aws_volume_attachment" "humios-volume-f-attachment" {
-  count = "${var.instances}"
+  count       = "${var.instances}"
   device_name = "/dev/xvdf"
   instance_id = "${element(aws_instance.humios.*.id, count.index)}"
-  volume_id   = "${element(aws_ebs_volume.humios-volume-b.*.id, count.index)}"
+  volume_id   = "${element(aws_ebs_volume.humios-volume-f.*.id, count.index)}"
 }
 
 resource "aws_ebs_volume" "humios-volume-g" {
-  availability_zone = "${data.aws_availability_zones.available.names[count.index]}"
+  count             = "${var.instances}"
+  availability_zone = "${element(aws_instance.humios.*.availability_zone, count.index)}"
   type              = "${var.ebs_vol_type}"
   size              = "${var.ebs_vol_size_gb}"
   iops              = "${var.ebs_vol_iops}"
 }
 
 resource "aws_volume_attachment" "humios-volume-g-attachment" {
-  count = "${var.instances}"
+  count       = "${var.instances}"
   device_name = "/dev/xvdg"
   instance_id = "${element(aws_instance.humios.*.id, count.index)}"
-  volume_id   = "${element(aws_ebs_volume.humios-volume-b.*.id, count.index)}"
+  volume_id   = "${element(aws_ebs_volume.humios-volume-g.*.id, count.index)}"
 }
 
 resource "aws_lb_target_group_attachment" "zkh-ui" {

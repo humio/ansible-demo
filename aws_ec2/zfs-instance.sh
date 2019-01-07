@@ -3,6 +3,7 @@ set -euxo pipefail
 
 #instance_type = "c5d.9xlarge"
 #sudo systemctl daemon-reload
+sudo apt-get install -y glances iotop schedtool hwloc sysstat linux-tools-common linux-tools-aws dstat
 
 
 bytes() {
@@ -45,9 +46,9 @@ modprobe zfs
 
 # Combine the EBS drives into a pool of storage.
 POOL=tank
-EBS_DEVS="xvda xvdc xvdd xvde xvdf"
-EPH_DEVS="nvme0n1 nvme1n1"
-SPARE_DEVS="xvdg"
+EBS_DEVS="nvme0n1 nvme1n1 nvme2n1 nvme3n1 nvme4n1"
+EPH_DEVS="nvme5n1"
+SPARE_DEVS="nvme6n1"
 zpool create ${POOL} raidz2 -f \
     -o ashift=12 \
     -o autoexpand=on \
@@ -84,18 +85,27 @@ L2ARC_SIZE=$(blk $EPH_DEVS)
 cat > /lib/systemd/system/zfs.service <<EOF
 [Unit]
 DefaultDependencies=no
-Before=local-fs.target
+Requires=systemd-udev-settle.service
+After=systemd-udev-settle.service
+After=cryptsetup.target
+Before=dracut-mount.service
+After=systemd-remount-fs.service
+
+[Install]
+WantedBy=multi-user.target
 
 [Service]
 Type=simple
 ExecStartPre=/sbin/modprobe zfs
 ExecStartPre=-/sbin/zpool import -a
-ExecStartPre=/sbin/zfs mount -a
 ExecStartPre=-/sbin/zpool remove $POOL ${EPH_DEVS}
-ExecStartPre=/sbin/zpool add ${POOL} cache ${EPH_DEVS} -f
+ExecStartPre=/sbin/zpool add -f ${POOL} cache ${EPH_DEVS}
+ExecStartPre=/sbin/zfs mount -a
 ExecStart=/usr/sbin/zed -F
 Restart=always
 EOF
+
+systemctl enable zfs
 
 cat > /etc/modprobe.d/zfs.conf <<EOF
 # Determines the maximum size of the ZFS Adjustable Replacement Cache (ARC)

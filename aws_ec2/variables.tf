@@ -57,11 +57,11 @@ variable "ebs_vol_type" {
 
 variable "ebs_vol_size_gb" {
   type = "string"
-  default = "1000"
+  default = "2048"
 }
 
 variable "ebs_vol_iops" {
   type = "string"
-  default = "32000"
+  default = "16000"
 }
 
