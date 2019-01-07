@@ -3,6 +3,7 @@
   236  iotop
   237  sudo iftop -nN -o source
 
+  arcstat.py -f "time,read,l2read,hit%,hits,miss%,miss,l2hit%,l2miss%,arcsz,c,l2size" 1
 
     ExecStart=/usr/bin/java -Xss2M -Xmx16G -Xms16G -server -XX:MaxDirectMemorySize=16G  -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:+ExplicitGCInvokesConcurrent -Dhumio.auditlog.dir=${HUMIO_AUDITLOG_DIR} -Dhumio.debuglog.dir=${HUMIO_DEBUGLOG_DIR} -jar /usr/lib/humio/server-1.2.3.jar
 #  ExecStart=/usr/bin/java -Dsun.net.inetaddr.ttl=60 -Dnetworkaddress.cache.ttl=60 -Dsun.net.inetaddr.negative.ttl=10 -Djava.net.preferIPv4Stack=true -XX:+PrintClassHistogram -Xmx16G -Xss2M -XX:MaxDirectMemorySize=16G -XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow -Xlog:gc:/var/log/humio/0/jvm-gc.log -XX:-UseCompressedOops -XX:+OptimizeStringConcat -XX:+UseStringDeduplication -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/humio/0/jvm-heap.dump -XX:+PrintGCDetails -XX:+DisableExplicitGC -XX:+BindGCTaskThreadsToCPUs -XX:+UseGCTaskAffinity -XX:+ParallelRefProcEnabled -XX:+AlwaysPreTouch -XX:+UseTLAB -XX:+ResizeTLAB -XX:+UnlockExperimentalVMOptions -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:G1MixedGCLiveThresholdPercent=10 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:InitiatingHeapOccupancyPercent=35 -XX:+ExplicitGCInvokesConcurrent -Dhumio.auditlog.dir=${HUMIO_AUDITLOG_DIR} -Dhumio.debuglog.dir=${HUMIO_DEBUGLOG_DIR} -jar /usr/lib/humio/server-1.2.3.jar
