@@ -11,7 +11,7 @@ Humio ui = http://humio-ui-784408560.us-east-2.elb.amazonaws.com
   236  iotop
   237  sudo iftop -nN -o source
 
-  arcstat.py -f "time,read,l2read,hit%,hits,miss%,miss,l2hit%,l2miss%,arcsz,c,l2size" 1
+  arcstat -f "time,read,l2read,hit%,hits,miss%,miss,l2hit%,l2miss%,arcsz,c,l2size" 1
 
     ExecStart=/usr/bin/java -Xss2M -Xmx16G -Xms16G -server -XX:MaxDirectMemorySize=16G  -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35 -XX:+ExplicitGCInvokesConcurrent -Dhumio.auditlog.dir=${HUMIO_AUDITLOG_DIR} -Dhumio.debuglog.dir=${HUMIO_DEBUGLOG_DIR} -jar /usr/lib/humio/server-1.2.3.jar
 #  ExecStart=/usr/bin/java -Dsun.net.inetaddr.ttl=60 -Dnetworkaddress.cache.ttl=60 -Dsun.net.inetaddr.negative.ttl=10 -Djava.net.preferIPv4Stack=true -XX:+PrintClassHistogram -Xmx16G -Xss2M -XX:MaxDirectMemorySize=16G -XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow -Xlog:gc:/var/log/humio/0/jvm-gc.log -XX:-UseCompressedOops -XX:+OptimizeStringConcat -XX:+UseStringDeduplication -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/var/log/humio/0/jvm-heap.dump -XX:+PrintGCDetails -XX:+DisableExplicitGC -XX:+BindGCTaskThreadsToCPUs -XX:+UseGCTaskAffinity -XX:+ParallelRefProcEnabled -XX:+AlwaysPreTouch -XX:+UseTLAB -XX:+ResizeTLAB -XX:+UnlockExperimentalVMOptions -XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:G1MixedGCLiveThresholdPercent=10 -XX:G1RSetUpdatingPauseTimePercent=5 -XX:InitiatingHeapOccupancyPercent=35 -XX:+ExplicitGCInvokesConcurrent -Dhumio.auditlog.dir=${HUMIO_AUDITLOG_DIR} -Dhumio.debuglog.dir=${HUMIO_DEBUGLOG_DIR} -jar /usr/lib/humio/server-1.2.3.jar
@@ -20,7 +20,14 @@ java -jar -Ddatasources=48 -Dbaseurls=http://ec2-18-224-51-59.us-east-2.compute.
 
 java -jar -Ddatasources=96 -Dbaseurls=http://humio-ingest-304882061.us-east-2.elb.amazonaws.com -Dusers=20 -Dtoken=nJSen4ES8nWiVlgZeNZQciYAWBpbYPfDGDzsuyGDYwKf -jar ./perftest.jar -s com.humio.perftest.QuerySimulation
 
---- parser
+java -jar -Ddatasources=96 -Dbaseurls=http://humio-ingest-790655390.us-east-2.elb.amazonaws.com -Dusers=250 -Dtoken=TFg4L8guYgshpQMhlzhcLDZGl6q1BYA7AlvCXgsTNOmj -jar ./perftest.jar -s com.humio.perftest.FilebeatSimulation 2>&1 >> perftest.log
+
+java -jar -Ddatasources=96 -Dbaseurls=http://humio-ingest-790655390.us-east-2.elb.amazonaws.com -Dusers=250 -Dtoken=TFg4L8guYgshpQMhlzhcLDZGl6q1BYA7AlvCXgsTNOmj -jar ./perftest.jar -s com.humio.perftest.QuerySimulation
+
+
+dataspace0
+
+--- parser "performance-test"
 /^(?<ts>\S+)/ |
 
 @timestamp := parseTimestamp("yyyy-MM-dd'T'HH:mm:ss[.SSS]XXX", field=ts) |
@@ -29,6 +36,11 @@ drop([ts]) |
 
 kvParse()
 ---
+`/dataspace0/parsers/editor/perftest-parser/settings/indexing` use "source" for tagging
+https://github.com/humio/humio/blob/master/scripts/provision/humio-log-collection.sh
+
+system/administration/partitions/ingest
+
 root@ip-172-16-1-10:~# lsblk
 NAME        MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
 loop0         7:0    0  88.2M  1 loop /snap/core/5897
