@@ -31,7 +31,7 @@ terraform apply
 
 In this demo we will configure the following parts
 * VPC with an Internet Gateway
-* A primary and secondary (currently unused) subnets
+* A primary and secondary subnets
 * Security groups
   * `main`, for providing SSH access everywhere
   * `zookeepers`, `kafkas`, `humios`, for internal communications and Ansible grouping
