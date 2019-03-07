@@ -1,8 +1,18 @@
 ---
 - hosts: all
-  tags: always
+  become: true
+  serial: 10
+  pre_tasks:
+    - name: Gather facts from ALL hosts (regardless of limit or tags)
+      tags: always
+      setup:
+      delegate_to: "{{ item }}"
+      delegate_facts: True
+      when: hostvars[item]['ansible_default_ipv4'] is not defined
+      with_items: "{{ groups['all'] }}"
   roles:
   - role: ansible-beats
+    tags: monitoring
     beat: "metricbeat"
     beat_conf:
       "metricbeat.modules":
@@ -22,13 +32,49 @@
         "period": "10s"
         "processes": [".*"]
         "cpu_ticks": false
+      fields:
+        "@tags": ["@host"]
 
+- hosts:
+    - tag_kafkas
+    - tag_humios
+  tags: disk
+  become: true
+  tasks:
+    - name: create mount targets
+      file:
+        path: "{{ item.destination }}"
+        state: directory
+      loop: "{{ humio_disks }}"
+    - name: Systemd mount config
+      copy:
+        content: |
+          [Unit]
+          Description={{ item.description }}
+
+          [Mount]
+          What={{ item.disk }}
+          Where={{ item.destination }}
+          Type={{ item.type }}
+          Options=defaults
+
+          [Install]
+          WantedBy=multi-user.target
+        dest: "/etc/systemd/system/{{ item.destination | replace('/', '', 1) | replace('/', '-') }}.mount"
+      loop: "{{ humio_disks }}"
+    - name: Start mount
+      service:
+        name: "{{ item.destination | replace('/', '', 1) | replace('/', '-') }}.mount"
+        enabled: true
+        daemon_reload: true
+        state: started
+      loop: "{{ humio_disks }}"
+    - name: Update facts
+      setup:
 
 - hosts: tag_zookeepers
   tags: zookeeper
   become: true
-  vars:
-    zookeeper_url: http://dk.mirrors.quenda.co/apache/zookeeper/zookeeper-3.4.12/zookeeper-3.4.12.tar.gz
   roles:
     - role: humio.java
     - role: AnsibleShipyard.ansible-zookeeper
@@ -57,7 +103,7 @@
         - host: "{{ ansible_bond0_0.ipv4.address }}"
 
 - hosts: tag_humios
-  tags: humio
+#  tags: humio
   serial: 1
   become: true
   roles:
@@ -100,6 +146,7 @@
 
     - role: humio.java
     - role: humio.server
+      tags: humio
       zookeeper_hosts: "
        {%- set ips = [] %}
        {%- for host in groups['tag_zookeepers'] %}
@@ -113,10 +160,13 @@
        {%- endfor %}
        {{- ips -}}"
       humio_host_id: "{{ ansible_local['cluster_index'] }}"
+      humio_data_path: "/var/humio/primary"
+      humio_data_secondary_path: "/var/humio/secondary"
       humio_config:
-##        all: "FILE=humio_config"
-        "0": "EXTERNAL_URL=http://{{ ansible_bond0_0.ipv4.address }}:8080"
-        "1": "EXTERNAL_URL=http://{{ ansible_bond0_0.ipv4.address }}:8081"
+        "0": |
+          EXTERNAL_URL=http://{{ ansible_bond0_0.ipv4.address }}:8080
+        "1": |
+          EXTERNAL_URL=http://{{ ansible_bond0_0.ipv4.address }}:8081
 
 - hosts: localhost
   connection: local
@@ -126,26 +176,5 @@
       uri:
         url: "http://{{ hostvars[groups['tag_humios']|random]['ansible_bond0'].ipv4.address }}:8080/api/v1/clusterconfig/partitions/setdefaults"
         method: POST
-    - name: Create repository
-      tags: humio
-      uri:
-        url: "http://{{ hostvars[groups['tag_humios']|random]['ansible_bond0'].ipv4.address }}:8080/graphql"
-        method: POST
-        body_format: json
-        body: |
-          {
-            "query":"mutation {createRepository(name: \"dataspace0\") {__typename}}"
-          }
     - debug:
-        msg: "Congratulations. Humio is now available at http://{{ http://{{ hostvars[groups['tag_humios']|random]['ansible_bond0'].ipv4.address }}:8080"
-
-- hosts: tag_ingesters
-  tags: ingest
-  roles:
-    - role: ingester
-      vars:
-#        ingest_baseurls: "{% for host in groups['tag_humios'] -%}http://{{ hostvars[host]['ansible_bond0_0'].ipv4.address }}:8080,http://{{ hostvars[host]['ansible_bond0_0'].ipv4.address }}:8081{% if not loop.last %},{% endif %}{%- endfor %}"
-        ingest_baseurls: "{% for host in groups['tag_humios'] -%}http://{{ hostvars[host]['ansible_bond0_0'].ipv4.address }}:80{% if not loop.last %},{% endif %}{%- endfor %}"
-        ingest_instances: 4
-        ingest_users: 8
-        ingest_tens_gb_per_day: 250
+        msg: "Congratulations. Humio is now available at http://{{ hostvars[groups['tag_humios']|random]['ansible_bond0'].ipv4.address }}:8080"

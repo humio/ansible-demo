@@ -21,7 +21,7 @@
     - service:
         name: "humio@{{ item }}"
         state: stopped
-      with_sequence: start=0 count=4
+      with_sequence: start=0 count=2
       ignore_errors: yes
     - file:
         path: "{{ item }}"

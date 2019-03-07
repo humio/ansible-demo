@@ -1,8 +1,0 @@
----
-- service:
-    name: "ingester@{{ item }}"
-    daemon_reload: yes
-    enabled: yes
-    state: restarted
-  with_sequence: count={{ ingest_instances }}
-  listen: Restart ingesters

@@ -8,17 +8,17 @@ resource "packet_project" "humio_performancetest_project" {
 
 resource "packet_device" "humios" {
   count            = "${var.instances}"
-  hostname         = "${format("humio%02d", count.index + 1)}-${element(var.facilities, count.index)}"
+  hostname         = "${format("humio%02d-%s", count.index + 1, element(var.facilities, count.index))}"
   plan             = "${var.humio_plan}"
   facility         = "${element(var.facilities, count.index)}"
   operating_system = "ubuntu_18_04"
   billing_cycle    = "hourly"
   project_id       = "${packet_project.humio_performancetest_project.id}"
-  tags             = [
-    "${ count.index < var.zookeepers ? "zookeepers" : "" }",
+  tags             = "${compact(list(
+    count.index < var.zookeepers ? "zookeepers" : "",
     "kafkas",
     "humios"
-  ]
+  ))}"
   user_data        = <<USERDATA
 #!/bin/bash
 mkdir -p /etc/ansible/facts.d
@@ -29,7 +29,6 @@ USERDATA
     inline = [
       "apt -y update",
       "apt -y install xfsprogs",
-      "/bin/mkdir -p /var/humio/primary /var/humio/secondary",
       <<MDADM
 mdadm --create /dev/md/primary $(lsblk -OJ | jq -r '.blockdevices[] | select(.rota == "0" and (has("children") | not)) | "/dev/\(.name)"') --level=0 --raid-devices=$(lsblk -OJ | jq '[.blockdevices[] | select(.rota == "0" and (has("children") | not))] | length')
 MDADM
@@ -38,12 +37,11 @@ MDADM
 mdadm --create /dev/md/secondary $(lsblk -OJ | jq -r '.blockdevices[] | select(.rota == "1") | "/dev/\(.name)"') --level=0 --raid-devices=$(lsblk -OJ | jq '[.blockdevices[] | select(.rota == "1")] | length')
 MDADM
     ,
+      "mdadm --detail --scan >> /etc/mdadm/mdadm.conf",
+      "update-initramfs -u",
       "sleep 5s",
       "mkfs.xfs /dev/md/primary",
       "mkfs.xfs /dev/md/secondary",
-      "mount /dev/md/primary /var/humio/primary -t xfs",
-      "mount /dev/md/secondary /var/humio/secondary -t xfs",
-      //      TODO: Add to /etc/fstab
     ]
   }
 }
