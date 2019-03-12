@@ -7,6 +7,10 @@ resource "digitalocean_tag" "project" {
 resource "digitalocean_tag" "zookeepers" {
   name = "zookeepers"
 }
+resource "digitalocean_tag" "no-zookeepers" {
+  //todo: Until we have "null" of Terraform 0.12
+  name = "no-zookeepers"
+}
 resource "digitalocean_tag" "kafkas" {
   name = "kafkas"
 }
@@ -29,7 +33,7 @@ resource "digitalocean_droplet" "humios" {
   ssh_keys = ["${data.digitalocean_ssh_key.default.fingerprint}"]
   tags = [
         "${digitalocean_tag.project.id}",
-        "${count.index < var.zookeepers ? digitalocean_tag.zookeepers.id : ""}",
+        "${count.index < var.zookeepers ? digitalocean_tag.zookeepers.id : digitalocean_tag.no-zookeepers.id}",
         "${digitalocean_tag.kafkas.id}",
         "${digitalocean_tag.humios.id}"
   ]
