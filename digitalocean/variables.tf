@@ -4,7 +4,7 @@ variable "sshkey" {
 
 variable "instances" {
   type = "string"
-  default = "8"
+  default = "3"
 }
 
 variable "zookeepers" {
