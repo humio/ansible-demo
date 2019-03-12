@@ -1,0 +1,78 @@
+---
+- hosts: all
+  become: true
+  serial: 10
+  pre_tasks:
+    - name: Gather facts from ALL hosts (regardless of limit or tags)
+      tags: always
+      setup:
+      delegate_to: "{{ item }}"
+      delegate_facts: True
+      when: hostvars[item]['ansible_default_ipv4'] is not defined
+      with_items: "{{ groups['all'] }}"
+- hosts: zookeepers
+  tags: zookeeper
+  become: true
+  roles:
+    - role: humio.java
+    - role: AnsibleShipyard.ansible-zookeeper
+      zookeeper_version: 3.4.13
+      zookeeper_url: "http://archive.apache.org/dist/zookeeper/zookeeper-{{ zookeeper_version }}/zookeeper-{{ zookeeper_version }}.tar.gz"
+      zookeeper_hosts: "
+       {%- set ips = [] %}
+       {%- for host in groups['zookeepers'] %}
+       {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['ansible_eth1'].ipv4.address)) }}
+       {%- endfor %}
+       {{- ips -}}"
+
+- hosts: kafkas
+  tags: kafka
+  serial: 1
+  become: true
+  roles:
+    - role: humio.java
+    - role: humio.kafka
+      zookeeper_hosts: "
+       {%- set ips = [] %}
+       {%- for host in groups['zookeepers'] %}
+       {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['ansible_eth1'].ipv4.address)) }}
+       {%- endfor %}
+       {{- ips -}}"
+      kafka_broker_id: "{{ ansible_local['cluster_index'] }}"
+      kafka_listeners:
+        - host: "{{ ansible_eth1.ipv4.address }}"
+
+- hosts: humios
+  serial: 1
+  become: true
+  roles:
+    - role: humio.java
+    - role: humio.server
+      tags: humio
+      zookeeper_hosts: "
+       {%- set ips = [] %}
+       {%- for host in groups['zookeepers'] %}
+       {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['ansible_eth1'].ipv4.address)) }}
+       {%- endfor %}
+       {{- ips -}}"
+      kafka_hosts: "
+       {%- set ips = [] %}
+       {%- for host in groups['kafkas'] %}
+       {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['ansible_eth1'].ipv4.address)) }}
+       {%- endfor %}
+       {{- ips -}}"
+      humio_host_id: "{{ ansible_local['cluster_index'] }}"
+      humio_config:
+        "0": |
+          EXTERNAL_URL=http://{{ ansible_eth1.ipv4.address }}:8080
+
+- hosts: localhost
+  connection: local
+  tasks:
+    - name: Rebalance partitions
+      tags: humio
+      uri:
+        url: "http://{{ hostvars[groups['humios']|random]['ansible_eth0'].ipv4.address }}:8080/api/v1/clusterconfig/partitions/setdefaults"
+        method: POST
+    - debug:
+        msg: "Congratulations. Humio is now available at http://{{ hostvars[groups['humios']|random]['ansible_eth0'].ipv4.address }}:8080"
