@@ -14,5 +14,6 @@ Bare in mind that *we take no responsibility for breaking changes* in the exampl
 
 We have divided this repository into a number of separate sample projects, mainly
 
-* [Packet.net](packet_net)
 * [AWS EC2](aws_ec2)
+* [DigitalOcean](digitalocean)
+* [Packet.net](packet_net)
