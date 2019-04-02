@@ -15,4 +15,5 @@ terraform plan
 
 terraform apply
 
-GCE_INIT_PATH=<your ini file that points to credentials.json> ansible -i ./gce.py --list
+
+GCE_INIT_PATH=<your ini file pointing to the service account role.json> ansible-playbook -i ./gce.py site.yml
