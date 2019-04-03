@@ -21,18 +21,39 @@ variable "vpc_network_cidr" {
 }
 
 # allow access from
+variable "access_pub_key" {
+  type = "string"
+  default = ""
+}
+variable "ansible_ssh_user" {
+  type = "string"
+  default = "ubuntu"
+}
+variable "boot_disk_image" {
+  type = "string"
+  default = "ubuntu-os-cloud/ubuntu-1804-lts"
+}
+variable "boot_disk_size" {
+  type = "string"
+  default = "100"
+}
+
+variable "humio_disk_size" {
+  type = "string"
+  default = "500"
+}
 variable "external_access_ips" {
   type = "list"
-  default = ["73.170.2.55/32"]
+  default = []
 }
 
 variable "zookeepers" {
   type = "string"
-  default = "1"
+  default = "3"
 }
 variable "instances" {
   type = "string"
-  default = "1"
+  default = "3"
 }
 variable "region" {
   type = "string"

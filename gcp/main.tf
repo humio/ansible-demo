@@ -1,4 +1,4 @@
-// Configure the Google Cloud provider
+// Configure 0the Google Cloud provider
 // this needs to move but whatever for noe
 provider "google" {
  credentials = "${file("gcp_credentials.json")}"
@@ -43,13 +43,60 @@ resource "google_compute_firewall" "external" {
   source_ranges = "${var.external_access_ips}"
 }
 
+
+# resource "google_compute_region_backend_service" "humios" {
+#   name             = "humio"
+#   description      = "Humio Node"
+#   protocol         = "TCP"
+#   timeout_sec      = 10
+#   # session_affinity = "CLIENT_IP"
+
+#   backend {
+#     group = "${google_compute_instance_group.humionodes.self_link}"
+#   }
+
+#   health_checks = ["${google_compute_health_check.check8080.self_link}"]
+# }
+resource "google_compute_forwarding_rule" "humioforwarder" {
+  name       = "humio-forwarder"
+  target     = "${google_compute_target_pool.humiotargets.self_link}"
+  port_range = "8080"
+}
+resource "google_compute_target_pool" "humiotargets" {
+  name = "humio-pool"
+
+  instances = ["${google_compute_instance.humios.*.self_link}"]
+
+  health_checks = [
+    "${google_compute_http_health_check.default.name}",
+  ]
+}
+
+resource "google_compute_http_health_check" "default" {
+  name               = "default"
+  request_path       = "/"
+  check_interval_sec = 1
+  timeout_sec        = 1
+  port = 8080
+}
+# resource "google_compute_health_check" "default" {
+#    name               = "tcp-check-8080"
+#    check_interval_sec = 1
+#    timeout_sec        = 1
+
+#    tcp_health_check {
+#      port = "8080"
+#    }
+#  }
+
+
 // create an pd-ssd for each humio-host
 resource "google_compute_disk" "humio-pd-ssd-" {
     count   = "${var.instances}"
     name    = "humio-pd-ssd-${count.index}-data"
     type    = "pd-ssd"
     zone    = "${var.zone}"
-    size    = "100"
+    size    = "${var.humio_disk_size}"
 }
 
 resource "google_compute_instance" "humios" {
@@ -65,13 +112,13 @@ resource "google_compute_instance" "humios" {
 
  boot_disk {
    initialize_params {
-     image = "ubuntu-os-cloud/ubuntu-1804-lts"
-     size = "100"
+     image = "${var.boot_disk_image}" 
+     size = "${var.boot_disk_size}"
    } 
  }
 
  metadata {
-   sshKeys = "ubuntu:${file("/Users/grant/.ssh/humio-gcp-us-east-1.pub")}"
+   sshKeys = "${var.ansible_ssh_user}:${var.access_pub_key}"
  }
 
  tags = [
@@ -94,10 +141,35 @@ resource "google_compute_instance" "humios" {
      // Include this section to give the VM an external ip address
    }
  }
-# labels and tags are not the same thing GCP, punting and using tags for now
-#  labels = {
-#         kafkas = true
-#         zookeepers = true
-#         humios = true
-#  }
+ 
+
+
+
 }
+#  output "humio_nodes" {
+#    #value = ["${element(google_compute_instance.humios.humios.*.name)}"]
+#    value = ["${google_compute_instance.humios.*.name}"]
+#  }
+
+
+resource "google_compute_instance_group" "humionodes" {
+  name        = "humio-nodes"
+  description = "humio-nodes"
+
+  instances = ["${google_compute_instance.humios.*.self_link}"]
+
+  named_port {
+    name = "http"
+    port = "8080"
+  }
+
+  named_port {
+    name = "http"
+    port = "9200"
+  }
+
+  zone = "${var.zone}"
+} 
+
+
+

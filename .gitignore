@@ -7,4 +7,5 @@
 *.lock.info
 terraform.tfstate*
 */.terraform
+*/override.tf
 
