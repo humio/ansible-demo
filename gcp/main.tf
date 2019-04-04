@@ -62,6 +62,11 @@ resource "google_compute_forwarding_rule" "humioforwarder" {
   target     = "${google_compute_target_pool.humiotargets.self_link}"
   port_range = "8080"
 }
+resource "google_compute_forwarding_rule" "humioesforwarder" {
+  name       = "humio-es-forwarder"
+  target     = "${google_compute_target_pool.humioestargets.self_link}"
+  port_range = "9200"
+}
 resource "google_compute_target_pool" "humiotargets" {
   name = "humio-pool"
 
@@ -69,6 +74,15 @@ resource "google_compute_target_pool" "humiotargets" {
 
   health_checks = [
     "${google_compute_http_health_check.default.name}",
+  ]
+}
+resource "google_compute_target_pool" "humioestargets" {
+  name = "humio-es-pool"
+
+  instances = ["${google_compute_instance.humios.*.self_link}"]
+
+  health_checks = [
+    "${google_compute_http_health_check.es.name}",
   ]
 }
 
@@ -79,15 +93,13 @@ resource "google_compute_http_health_check" "default" {
   timeout_sec        = 1
   port = 8080
 }
-# resource "google_compute_health_check" "default" {
-#    name               = "tcp-check-8080"
-#    check_interval_sec = 1
-#    timeout_sec        = 1
-
-#    tcp_health_check {
-#      port = "8080"
-#    }
-#  }
+resource "google_compute_http_health_check" "es" {
+  name               = "escheck"
+  request_path       = "/"
+  check_interval_sec = 1
+  timeout_sec        = 1
+  port = 9200
+}
 
 
 // create an pd-ssd for each humio-host
@@ -141,35 +153,25 @@ resource "google_compute_instance" "humios" {
      // Include this section to give the VM an external ip address
    }
  }
- 
-
-
-
 }
-#  output "humio_nodes" {
-#    #value = ["${element(google_compute_instance.humios.humios.*.name)}"]
-#    value = ["${google_compute_instance.humios.*.name}"]
-#  }
+# resource "google_compute_instance_group" "humionodes" {
+#   name        = "humio-nodes"
+#   description = "humio-nodes"
 
+#   instances = ["${google_compute_instance.humios.*.self_link}"]
 
-resource "google_compute_instance_group" "humionodes" {
-  name        = "humio-nodes"
-  description = "humio-nodes"
+#   named_port {
+#     name = "http"
+#     port = "8080"
+#   }
 
-  instances = ["${google_compute_instance.humios.*.self_link}"]
+#   named_port {
+#     name = "http"
+#     port = "9200"
+#   }
 
-  named_port {
-    name = "http"
-    port = "8080"
-  }
-
-  named_port {
-    name = "http"
-    port = "9200"
-  }
-
-  zone = "${var.zone}"
-} 
+#   zone = "${var.zone}"
+# } 
 
 
 
