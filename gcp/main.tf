@@ -5,6 +5,7 @@ provider "google" {
  region      = "${var.region}"
 }
 
+// create VPC network
 resource "google_compute_network" "vpc_network" {
   name                    = "${var.vpc_network_name}"
   auto_create_subnetworks = "false"
@@ -139,9 +140,6 @@ resource "google_compute_instance" "humios" {
  network_interface {
    network = "${google_compute_network.vpc_network.name}"
 
-   access_config {
-     // Include this section to give the VM an external ip address
-   }
  }
 }
 resource "google_compute_instance_group" "humionodes" {
