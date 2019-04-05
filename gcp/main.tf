@@ -1,7 +1,6 @@
-// Configure 0the Google Cloud provider
-// this needs to move but whatever for noe
+// Configure the Google Cloud provider
 provider "google" {
- credentials = "${file("gcp_credentials.json")}"
+ credentials = "${file(var.gcp_credentials)}"
  project     = "${var.gcp_project_id}"
  region      = "${var.region}"
 }
@@ -56,24 +55,6 @@ resource "google_compute_firewall" "allow_health_check" {
 }
 
 
-# resource "google_compute_region_backend_service" "humios" {
-#   name             = "humio"
-#   description      = "Humio Node"
-#   protocol         = "TCP"
-#   timeout_sec      = 10
-#   # session_affinity = "CLIENT_IP"
-
-#   backend {
-#     group = "${google_compute_instance_group.humionodes.self_link}"
-#   }
-
-#   health_checks = ["${google_compute_health_check.check8080.self_link}"]
-# }
-# resource "google_compute_forwarding_rule" "humioforwarder" {
-#   name       = "humio-forwarder"
-#   #target     = "${google_compute_target_pool.humiotargets.self_link}"
-#   port_range = "8080"
-# }
 resource "google_compute_global_address" "default" {
   name = "humio-global-ip"
 }
@@ -93,29 +74,6 @@ resource "google_compute_global_forwarding_rule" "es" {
   port_range = "443"
 }
 
-# resource "google_compute_forwarding_rule" "humioesforwarder" {
-#   name       = "humio-es-forwarder"
-#   target     = "${google_compute_target_pool.humioestargets.self_link}"
-#   port_range = "9200"
-# # }
-# resource "google_compute_target_pool" "humiotargets" {
-#   name = "humio-pool"
-
-#   instances = ["${google_compute_instance.humios.*.self_link}"]
-
-#   health_checks = [
-#     "${google_compute_http_health_check.default.name}",
-#   ]
-# }
-# resource "google_compute_target_pool" "humioestargets" {
-#   name = "humio-es-pool"
-
-#   instances = ["${google_compute_instance.humios.*.self_link}"]
-
-#   health_checks = [
-#     "${google_compute_http_health_check.es.name}",
-#   ]
-# }
 
 resource "google_compute_http_health_check" "default" {
   name               = "default"
@@ -235,7 +193,7 @@ resource "google_compute_url_map" "default" {
   default_service = "${google_compute_backend_service.humio.self_link}"
 
   host_rule {
-    hosts        = ["gcp-test.humio.com"]
+    hosts        = ["${var.https_hostname}"]
     path_matcher = "allpaths"
   }
 
@@ -256,7 +214,7 @@ resource "google_compute_url_map" "es" {
   default_service = "${google_compute_backend_service.humioes.self_link}"
 
   host_rule {
-    hosts        = ["gcp-test-es.humio.com"]
+    hosts        = ["${var.es_hostname}"]
     path_matcher = "allpaths"
   }
 
