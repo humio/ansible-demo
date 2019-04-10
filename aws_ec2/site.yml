@@ -54,14 +54,3 @@
       humio_config:
 ##        all: "FILE=humio_config"
         "0": "EXTERNAL_URL=http://{{ ec2_private_ip_address }}:8080"
-
-- hosts: localhost
-  connection: local
-  tasks:
-    - name: Rebalance partitions
-      tags: humio
-      uri:
-        url: http://{{ hostvars[groups['security_group_humios']|random].ec2_public_dns_name }}:8080/api/v1/clusterconfig/partitions/setdefaults
-        method: POST
-    - debug:
-        msg: "Congratulations. Humio is now available at http://{{ hostvars[groups['security_group_humios']|random].ec2_public_dns_name }}:8080/"
