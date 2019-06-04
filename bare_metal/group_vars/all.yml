@@ -1,0 +1,39 @@
+---
+############################################
+#
+# AnsibleShipyard.ansible-zookeeper variables
+#
+zookeeper_version: 3.4.14
+zookeeper_url: "http://archive.apache.org/dist/zookeeper/zookeeper-{{ zookeeper_version }}/zookeeper-{{ zookeeper_version }}.tar.gz"
+
+############################################
+#
+# humio.server variables
+#
+
+# the version of Humio to use. a list of versions with
+# their changes can be found in the changelog:
+# https://docs.humio.com/release-notes/
+humio_version: 1.5.14
+
+# the name of the network interface Humio will be listening
+# on as displayed in `ifconfig` output
+humio_network_interface: enp0s3
+
+############################################
+#
+# humio.kafka variables
+#
+kafka_version: 2.1.1
+kafka_scala_version: 2.12
+
+############################################
+#
+# ansible-beats variables
+#
+beats_version: 7.1.0
+beats_major_version: oss-7.x
+output_conf:
+  "elasticsearch":
+    "hosts": ["{{ lookup('env', 'HUMIO_PARENT_URL') }}"]
+    "username": "{{ lookup('env', 'HUMIO_PARENT_INGEST_TOKEN') }}"
