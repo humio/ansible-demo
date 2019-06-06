@@ -1,5 +1,5 @@
 ---
-- src: elastic.beats
+- src: https://github.com/elastic/ansible-beats
 
 - src: entercloudsuite.haproxy
 
