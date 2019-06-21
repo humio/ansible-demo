@@ -15,5 +15,6 @@ Bare in mind that *we take no responsibility for breaking changes* in the exampl
 We have divided this repository into a number of separate sample projects, mainly
 
 * [AWS EC2](aws_ec2)
+* [Bare Metal](bare_metal)
 * [DigitalOcean](digitalocean)
 * [Packet.net](packet_net)
