@@ -51,18 +51,19 @@ variable "zookeepers" {
   type = "string"
   default = "3"
 }
+// number of instances per zone
 variable "instances" {
   type = "string"
-  default = "3"
+  default = "0"
 }
 variable "region" {
   type = "string"
-  default = "us-east1"
+  default = "us-central1"
 }
-variable "zone" {
-  type = "string"
-  default = "us-east1-b"
-}
+# variable "zone" {
+#   type = "string"
+#   default = "us-east1-b"
+# }
 
 variable "machine_type" {
   type = "string"
