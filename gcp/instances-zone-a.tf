@@ -13,7 +13,7 @@ resource "google_compute_disk" "humio-pd-ssd-a" {
 resource "google_compute_instance" "humios-a" {
  count = "${var.instances}"
  name = "${format("humio%02d-%s-a", count.index + 1, var.region)}"
- machine_type = "${var.machine_type}" 
+ machine_type = "${var.machine_type}"
  zone         = "${var.region}-a"
 
  attached_disk {
@@ -23,9 +23,9 @@ resource "google_compute_instance" "humios-a" {
 
  boot_disk {
    initialize_params {
-     image = "${var.boot_disk_image}" 
+     image = "${var.boot_disk_image}"
      size = "${var.boot_disk_size}"
-   } 
+   }
  }
 
 #  metadata {
@@ -41,9 +41,12 @@ resource "google_compute_instance" "humios-a" {
 
  metadata_startup_script = <<SCRIPT
  sudo apt-get update
- sudo apt-get install -yq build-essential python
- sudo mkdir -p /etc/ansible/facts.d/ 
+ sudo apt-get install -yq build-essential python jq
+ sudo mkdir -p /etc/ansible/facts.d/
  sudo echo ${count.index + 1} > /etc/ansible/facts.d/cluster_index.fact
+ sudo echo -e $(echo ${google_service_account_key.default.private_key} | base64 -d | jq '.private_key') > /var/lib/service-account.key
+ sudo chown ubuntu:ubuntu /var/lib/service-account.key
+ sudo chmod 600 /var/lib/service-account.key
  SCRIPT
  network_interface {
    network = "${google_compute_network.vpc_network.name}"
@@ -75,4 +78,4 @@ resource "google_compute_instance_group" "humionodes_a" {
 #   }
 
   zone = "${var.region}-a"
-} 
+}
