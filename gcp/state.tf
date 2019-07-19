@@ -1,7 +1,7 @@
 terraform {
   backend "gcs" {
-    bucket      = "${gcp_project_id}-remote-state"
-    prefix      = "terraform/state/${gcp_project_id}"
-    credentials = "${var.credentials_file}"
+    bucket      = "nyc3-poc-remote-state"
+    prefix      = "terraform/state/nyc3-poc"
+    credentials = "./service-account.json"
   }
 }
