@@ -51,10 +51,45 @@ resource "google_compute_instance" "humios" {
 
  metadata_startup_script = <<SCRIPT
  sudo apt-get update
- sudo apt-get install -yq build-essential python
+ sudo apt-get install -yq build-essential python jq docker.io
  sudo mkdir -p /etc/ansible/facts.d/
  sudo echo ${count.index + 1} > /etc/ansible/facts.d/cluster_index.fact
+
+ sudo echo ${google_service_account_key.default.private_key} | base64 -d | jq -r '.private_key' > /var/lib/service-account.key
+ sudo chown ubuntu:ubuntu /var/lib/service-account.key
+
+ sudo chmod 600 /var/lib/service-account.key
+ sudo mkdir /home/ubuntu/.ssh; sudo touch /home/ubuntu/.ssh
+ sudo chown -R ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
+
+ sudo bash -c 'cat << EOF > /var/lib/gce.ini
+[gce]
+libcloud_secrets =
+
+gce_service_account_email_address = ${google_service_account.default.email}
+gce_service_account_pem_file_path = /service-account.pem
+gce_project_id = ${var.gcp_project_id}
+gce_zone = ${var.region}
+
+[inventory]
+inventory_ip_type = internal
+
+[cache]
+cache_path = ~/.ansible/tmp
+cache_max_age = 300
+EOF'
+
+ sudo bash -c 'cat << EOF > /bootstrap.sh
+sudo docker run -it \
+  -v /home/ubuntu/.ssh/authorized_keys:/tmp/authorized_keys \
+  -v /var/lib/service-account.key:/service-account.pem \
+  -v /var/lib/gce.ini:/etc/ansible/gce.ini \
+  humio/ansible
+EOF'
+
+ sudo bash -c 'sh -x /bootstrap.sh > /bootstrap.log 2>&1'
  SCRIPT
+
  network_interface {
    network = "${google_compute_network.vpc_network.name}"
     access_config {
