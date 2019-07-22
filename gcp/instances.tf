@@ -31,6 +31,9 @@ resource "google_compute_instance" "humios" {
      size = "${var.boot_disk_size}"
    } 
  }
+ scratch_disk {
+     interface = "nvme"
+ }
 
 #  metadata {
 #    sshKeys = "${var.ansible_ssh_user}:${var.access_pub_key}"

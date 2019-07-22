@@ -52,10 +52,7 @@ variable "zookeepers" {
   default = "3"
 }
 // number of instances per zone
-variable "instances" {
-  type = "string"
-  default = "0"
-}
+
 variable "instances" {
   type = "string"
   default = "6"
