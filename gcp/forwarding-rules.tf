@@ -106,15 +106,15 @@ resource "google_compute_backend_service" "humio" {
   port_name   = "http"
   protocol    = "HTTP"
   timeout_sec = 10
-
+  # backend = {"${element(google_compute_instance.humios.*.self_link, count.index)}"}
   backend {
-    group = "${google_compute_instance_group.humionodes_a.self_link}"
+    group = "${google_compute_instance_group.humionodes.0.self_link}"
   }
   backend {
-    group = "${google_compute_instance_group.humionodes_b.self_link}"
+    group = "${google_compute_instance_group.humionodes.1.self_link}"
   }
   backend {
-    group = "${google_compute_instance_group.humionodes_c.self_link}"
+    group = "${google_compute_instance_group.humionodes.2.self_link}"
   }
 
   health_checks = ["${google_compute_http_health_check.default.self_link}"]

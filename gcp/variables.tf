@@ -59,6 +59,10 @@ variable "instances" {
   type = "string"
   default = "0"
 }
+variable "instances" {
+  type = "string"
+  default = "6"
+}
 variable "region" {
   type = "string"
   default = "us-central1"

@@ -1,24 +1,28 @@
 
 
+variable "zones" {
+  default = { "0" = "a", "1" = "b", "2" = "c"}
+  
+}
 
 // create an pd-ssd for each humio-host
-resource "google_compute_disk" "humio-pd-ssd-a" {
+resource "google_compute_disk" "humio-pd-ssd" {
     count   = "${var.instances}"
-    name    = "humio-pd-ssd-${count.index + 1}-a-data"
+    name    = "humio-pd-ssd-${count.index + 1}-${lookup(var.zones, count.index%3)}-data"
     type    = "pd-ssd"
-    zone    = "${var.region}-a"
+    zone    = "${var.region}-${lookup(var.zones, count.index%3)}"
     size    = "${var.humio_disk_size}"
 }
 
-resource "google_compute_instance" "humios-a" {
+resource "google_compute_instance" "humios" {
  count = "${var.instances}"
- name = "${format("humio%02d-%s-a", count.index + 1, var.region)}"
+ name = "${format("humio%02d-%s-%s", count.index + 1, var.region, lookup(var.zones, count.index%3))}"
  machine_type = "${var.machine_type}" 
- zone         = "${var.region}-a"
+ zone         = "${var.region}-${lookup(var.zones, count.index%3)}"
 
  attached_disk {
-    source      = "${element(google_compute_disk.humio-pd-ssd-a.*.self_link, count.index +1)}"
-    device_name = "${element(google_compute_disk.humio-pd-ssd-a.*.name, count.index + 1)}"
+    source      = "${element(google_compute_disk.humio-pd-ssd.*.self_link, count.index)}"
+    device_name = "${element(google_compute_disk.humio-pd-ssd.*.name, count.index)}"
  }
 
  boot_disk {
@@ -53,11 +57,12 @@ resource "google_compute_instance" "humios-a" {
 
  }
 }
-resource "google_compute_instance_group" "humionodes_a" {
-  name        = "humio-nodes-a"
-  description = "humio-nodes-a"
+resource "google_compute_instance_group" "humionodes" {
+  count = "3"
+  name        = "humio-nodes-${lookup(var.zones, count.index%3)}"
+  description = "humio-nodes-${lookup(var.zones, count.index%3)}"
 
-  instances = ["${google_compute_instance.humios-a.*.self_link}"]
+  instances = ["${element(google_compute_instance.humios.*.self_link, count.index)}"]
 
   named_port {
     name = "http"
@@ -74,5 +79,5 @@ resource "google_compute_instance_group" "humionodes_a" {
 #     port = "9200"
 #   }
 
-  zone = "${var.region}-a"
+  zone = "${var.region}-${lookup(var.zones, count.index%3)}"
 } 
