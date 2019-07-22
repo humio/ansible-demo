@@ -11,9 +11,6 @@ variable "gcp_project_id" {
   type = "string"
 }
 
-# must be set manually
-variable "credentials_file" {}
-
 variable "vpc_network_name" {
   type = "string"
   default = "humio-vpc"
