@@ -8,4 +8,4 @@
   version: 0.1.5
 
 - src: humio.server
-  version: 0.2.9
+  version: 0.3.2
