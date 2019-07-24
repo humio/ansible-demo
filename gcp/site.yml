@@ -60,35 +60,7 @@
         path: /var/humio
         state: mounted
 
-- hosts:
-    - tag_kafkas
-    - tag_humios
-  tags: disk
-  become: true
-  tasks:
-    - name: parition nvme0n1 
-      parted:
-        device: /dev/nvme0n1
-        number: 1
-        flags: [ lvm ]
-        label: gpt
-        state: present 
-    - name: format nvme0n1
-      filesystem:
-        dev: /dev/nvme0n1
-        fstype: xfs
-    - name: mount nvme0n1
-      mount:
-        fstype: xfs
-        src: /dev/nvme0n1
-        path: /var/humio/cache
-        state: mounted
-    - name: Cache ownership
-      file:
-        path: /var/humio/cache
-        owner: humio
-        group: humio
-        mode: '0755'
+
 
 - hosts: tag_zookeepers
   tags: zookeeper
@@ -182,7 +154,41 @@
           CACHE_STORAGE_PERCENTAGE=90
         "0": |
           EXTERNAL_URL=http://{{ gce_private_ip }}:8080
-
+- hosts:
+    - tag_kafkas
+    - tag_humios
+  tags: disk
+  become: true
+  tasks:
+    - name: Check if drives are already mounted
+      shell: df | grep "nvme0n1" | wc -l
+      register: nvme_checked
+    - name: parition nvme0n1
+      when: nvme_checked.stdout  == 0
+      parted:
+        device: /dev/nvme0n1
+        number: 1
+        flags: [ lvm ]
+        label: gpt
+        state: present 
+    - name: format nvme0n1
+      when: nvme_checked.stdout  == 0
+      filesystem:
+        dev: /dev/nvme0n1
+        fstype: xfs
+    - name: mount nvme0n1
+      when: nvme_checked.stdout  == 0
+      mount:
+        fstype: xfs
+        src: /dev/nvme0n1
+        path: /var/humio/cache
+        state: mounted
+    - name: Cache ownership
+      file:
+        path: /var/humio/cache
+        owner: humio
+        group: humio
+        mode: '0755'
 # - hosts: localhost
 #   connection: local
 #   tasks:
