@@ -309,14 +309,14 @@ resource "aws_lb_target_group_attachment" "zkh-ingest-es" {
   count = "${var.instances}"
 }
 
-output "Humio ui" {
+output "humio_ui" {
   value = "http://${aws_lb.ui.dns_name}"
 }
 
-output "Humio ingest API" {
+output "humio_ingest_api" {
   value = "http://${aws_lb.ingest.dns_name}"
 }
 
-output "Humio ingest Elastic" {
+output "humio_ingest_elastic" {
   value = "http://${aws_lb.ingest.dns_name}:9200"
 }
