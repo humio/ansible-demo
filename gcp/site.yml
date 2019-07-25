@@ -13,15 +13,19 @@
     - set_fact:
         zookeeper_hosts: "
           {%- set ips = [] %}
+          {%- if 'tag_zookeepers' in groups %}
           {%- for host in groups['tag_zookeepers'] %}
           {{- ips.append(dict(id=loop.index, host=host, ip=hostvars[host]['gce_private_ip'])) }}
           {%- endfor %}
+          {%- endif %}
           {{- ips -}}"
         kafka_hosts: "
           {%- set ips = [] %}
+          {%- if 'tag_kafkas' in groups %}
           {%- for host in groups['tag_kafkas'] %}
           {{- ips.append(dict(id=loop.index, host=host, ip=hostvars[host]['gce_private_ip'])) }}
           {%- endfor %}
+          {%- endif %}
           {{- ips -}}"
 
   roles:
@@ -164,9 +168,10 @@
         src: /dev/nvme0n1
         path: /var/humio/cache
         state: mounted
-    - name: Cache ownership
+    - name: Create the cache directory
       file:
         path: /var/humio/cache
+        state: directory
+        mode: '0755'
         owner: humio
         group: humio
-        mode: '0755'
