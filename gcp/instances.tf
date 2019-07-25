@@ -80,14 +80,31 @@ cache_max_age = 300
 EOF'
 
  sudo bash -c 'cat << EOF > /bootstrap.sh
-sudo docker run -it \
+#!/bin/sh
+
+sudo docker run --rm \
   -v /home/ubuntu/.ssh/authorized_keys:/tmp/authorized_keys \
   -v /var/lib/service-account.key:/service-account.pem \
   -v /var/lib/gce.ini:/etc/ansible/gce.ini \
   humio/ansible
 EOF'
 
- sudo bash -c 'sh -x /bootstrap.sh > /bootstrap.log 2>&1'
+ sudo chmod +x /bootstrap.sh
+
+ sudo bash -c 'cat << EOF > /etc/systemd/system/bootstrap.service
+[Unit]
+Description=Run Ansible
+After=network.target
+[Service]
+Type=oneshot
+ExecStart=/bootstrap.sh
+RemainAfterExit=true
+StandardOutput=journal
+[Install]
+WantedBy=multi-user.target
+EOF'
+ sudo systemctl daemon-reload
+ sudo systemctl start bootstrap.service
  SCRIPT
 
  network_interface {

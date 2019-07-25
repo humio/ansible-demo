@@ -10,6 +10,20 @@
       delegate_facts: True
       when: hostvars[item]['gce_private_ip'] is not defined
       with_items: "{{ groups['all'] }}"
+    - set_fact:
+        zookeeper_hosts: "
+          {%- set ips = [] %}
+          {%- for host in groups['tag_zookeepers'] %}
+          {{- ips.append(dict(id=loop.index, host=host, ip=hostvars[host]['gce_private_ip'])) }}
+          {%- endfor %}
+          {{- ips -}}"
+        kafka_hosts: "
+          {%- set ips = [] %}
+          {%- for host in groups['tag_kafkas'] %}
+          {{- ips.append(dict(id=loop.index, host=host, ip=hostvars[host]['gce_private_ip'])) }}
+          {%- endfor %}
+          {{- ips -}}"
+
   roles:
   - role: ansible-beats
     tags: monitoring
@@ -35,7 +49,6 @@
       fields:
         "@tags": ["@host"]
 
-
 - hosts:
     - tag_kafkas
     - tag_humios
@@ -48,7 +61,7 @@
         number: 1
         flags: [ lvm ]
         label: gpt
-        state: present 
+        state: present
     - name: format sdb1
       filesystem:
         dev: /dev/sdb1
@@ -60,8 +73,6 @@
         path: /var/humio
         state: mounted
 
-
-
 - hosts: tag_zookeepers
   tags: zookeeper
   become: true
@@ -70,18 +81,6 @@
     - role: AnsibleShipyard.ansible-zookeeper
       zookeeper_version: 3.4.13
       zookeeper_url: "http://archive.apache.org/dist/zookeeper/zookeeper-{{ zookeeper_version }}/zookeeper-{{ zookeeper_version }}.tar.gz"
-      zookeeper_hosts: "
-        {%- set ips = [] %}
-        {%- for host in groups['tag_zookeepers'] %}
-        {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['gce_private_ip'])) }}
-        {%- endfor %}
-        {{- ips -}}"
-      # zookeeper_hosts: "
-      #  {%- set ips = [] %}
-      #  {%- for host in groups['zookeepers'] %}
-      #  {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['ansible_eth1'].ipv4.address)) }}
-      #  {%- endfor %}
-      #  {{- ips -}}"
 
 - hosts: tag_kafkas
   serial: 1
@@ -89,12 +88,6 @@
   roles:
     - role: humio.java
     - role: humio.kafka
-      zookeeper_hosts: "
-        {%- set ips = [] %}
-        {%- for host in groups['tag_zookeepers'] %}
-        {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['gce_private_ip'])) }}
-        {%- endfor %}
-        {{- ips -}}"
       kafka_broker_id: "{{ ansible_local['cluster_index'] }}"
       kafka_listeners:
         - host: "{{ gce_private_ip }}"
@@ -135,18 +128,6 @@
     - role: humio.java
     - role: humio.server
       tags: humio
-      zookeeper_hosts: "
-        {%- set ips = [] %}
-        {%- for host in groups['tag_zookeepers'] %}
-        {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['gce_private_ip'])) }}
-        {%- endfor %}
-        {{- ips -}}"
-      kafka_hosts: "
-       {%- set ips = [] %}
-       {%- for host in groups['tag_kafkas'] %}
-       {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['gce_private_ip'])) }}
-       {%- endfor %}
-       {{- ips -}}"
       humio_host_id: "{{ ansible_local['cluster_index'] }}"
       humio_config:
         "all": |
@@ -170,7 +151,7 @@
         number: 1
         flags: [ lvm ]
         label: gpt
-        state: present 
+        state: present
     - name: format nvme0n1
       when: nvme_checked.stdout  == 0
       filesystem:
