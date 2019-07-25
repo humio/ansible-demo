@@ -1,0 +1,58 @@
+---
+- hosts: humios
+  tags: humio
+  become: true
+  tasks:
+    - service:
+        name: "humio@{{ item }}"
+        state: stopped
+      with_sequence: start=0 count={{ ansible_processor_count }}
+      ignore_errors: yes
+    - file:
+        path: "/etc/systemd/system/humio@{{ item }}.service.d"
+        state: absent
+      with_sequence: start=0 count={{ ansible_processor_count }}
+      ignore_errors: yes
+    - file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "/var/log/humio"
+        - "{{ humio_data_path | default('/var/humio/server') }}"
+        - "/tmp/hsperfdata_humio"
+      ignore_errors: yes
+
+- hosts: kafkas
+  tags: kafka
+  become: true
+  tasks:
+  - service:
+      name: kafka
+      state: stopped
+    ignore_errors: yes
+  - file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+      - "/var/log/kafka"
+      - "{{ kafka_logs_dir | default('/var/humio/kafka/data') }}"
+      - "/tmp/hsperfdata_kafka"
+    ignore_errors: yes
+
+- hosts: zookeepers
+  tags: zookeeper
+  become: true
+  tasks:
+  - service:
+      name: zookeeper
+      state: stopped
+    ignore_errors: yes
+  - file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+      - "/var/log/zookeeper"
+      - "/var/lib/zookeeper"
+      - "/tmp/hsperfdata_zookeeper/"
+    ignore_errors: yes
+

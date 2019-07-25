@@ -17,4 +17,5 @@ We have divided this repository into a number of separate sample projects, mainl
 * [AWS EC2](aws_ec2)
 * [Bare Metal](bare_metal)
 * [DigitalOcean](digitalocean)
+* [Microsoft Azure](azure_rm)
 * [Packet.net](packet_net)
