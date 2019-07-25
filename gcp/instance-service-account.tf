@@ -3,17 +3,14 @@ resource "google_service_account" "default" {
   display_name = "Instance Service Account"
 }
 
-data "google_iam_policy" "default" {
-  binding {
-    role = "Compute Viewer"
-
-    members = [
-      "serviceAccount:${google_service_account.default.email}",
-    ]
-  }
-}
-
 resource "google_service_account_key" "default" {
   service_account_id = "${google_service_account.default.name}"
   public_key_type    = "TYPE_X509_PEM_FILE"
+}
+
+resource "google_project_iam_member" "default" {
+  project = "${var.gcp_project_id}"
+  role    = "roles/compute.viewer"
+  member  = "user:jane@example.com"
+  member  = "serviceAccount:${google_service_account.default.email}"
 }
