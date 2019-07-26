@@ -6,7 +6,7 @@ resource "google_compute_global_address" "default" {
 #   name = "humio-global-es-ip"
 # }
 resource "google_compute_global_forwarding_rule" "https" {
-  name       = "humio-global-forward"
+  name       = "humio-global-forward-${local.dependency_id}"
   target     = "${google_compute_target_https_proxy.default.self_link}"
   ip_address = "${google_compute_global_address.default.address}"
   port_range = "443"
@@ -35,7 +35,7 @@ resource "google_compute_http_health_check" "default" {
 #   }
 # }
 resource "google_compute_target_https_proxy" "default" {
-  name             = "humio-https-proxy"
+  name             = "humio-https-proxy-${local.dependency_id}"
   url_map          = "${google_compute_url_map.default.self_link}"
   ssl_certificates = ["${google_compute_ssl_certificate.default.self_link}"]
 }
@@ -58,7 +58,7 @@ resource "google_compute_ssl_certificate" "default" {
 # }
 
 resource "google_compute_url_map" "default" {
-  name        = "humio-url-map"
+  name        = "humio-url-map-${local.dependency_id}"
   description = "https map"
 
   default_service = "${google_compute_backend_service.humio.self_link}"
@@ -102,7 +102,7 @@ resource "google_compute_url_map" "default" {
 
 
 resource "google_compute_backend_service" "humio" {
-  name        = "humio-backend-service"
+  name        = "humio-backend-service-${local.dependency_id}"
   port_name   = "http"
   protocol    = "HTTP"
   timeout_sec = 10

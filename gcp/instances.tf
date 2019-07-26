@@ -115,9 +115,27 @@ EOF'
 
  }
 }
+
+resource "null_resource" "test" {
+  #count = "3"
+  triggers = {
+    #instances = "${join(",", slice(google_compute_instance.humios.*.self_link, count.index * var.instances_per_zone, count.index * var.instances_per_zone + var.instances_per_zone))}"
+    instances = "${join(",", slice(google_compute_instance.humios.*.self_link, 0, var.instances))}"
+  }
+}
+
+locals {
+  #dependency_id = "${element(concat(null_resource.test.*.id, list("disabled")), 0)}"
+  dependency_id = "${null_resource.test.id}"
+}
+
 resource "google_compute_instance_group" "humionodes" {
   count = "3"
-  name        = "humio-nodes-${lookup(var.zones, count.index % 3)}"
+  #name = "${element(split("|", "${local.dependency_id}|${element(concat(google_compute_instance_group_manager.default.*.name, list("unused")), 0)}"), 1)}"
+
+  name = "humio-nodes-${lookup(var.zones, count.index % 3)}-${local.dependency_id}"
+
+  #name        = "humio-nodes-${concat(lookup(var.zones, count.index % 3), local.dependency_id)}"
   description = "humio-nodes-${lookup(var.zones, count.index % 3)}"
 
   instances = ["${slice(google_compute_instance.humios.*.self_link, count.index * var.instances_per_zone, count.index * var.instances_per_zone + var.instances_per_zone)}"]
@@ -130,12 +148,6 @@ resource "google_compute_instance_group" "humionodes" {
     name = "https"
     port = "443"
   }
-
-
-#   named_port {
-#     name = "es"
-#     port = "9200"
-#   }
 
   zone = "${var.region}-${lookup(var.zones, count.index % 3)}"
 }
