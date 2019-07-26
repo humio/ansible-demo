@@ -1,5 +1,3 @@
-
-
 variable "zones" {
   default = { "0" = "a", "1" = "b", "2" = "c"}
 }
@@ -10,59 +8,55 @@ variable "instances_per_zone" {
 
 // create an pd-ssd for each humio-host
 resource "google_compute_disk" "humio-pd-ssd" {
-    count   = "${var.instances}"
-    name    = "humio-pd-ssd-${count.index + 1}-${lookup(var.zones, count.index % var.instances / var.instances_per_zone)}-data"
-    type    = "pd-ssd"
-    zone    = "${var.region}-${lookup(var.zones, count.index % var.instances / var.instances_per_zone)}"
-    size    = "${var.humio_disk_size}"
+  count = "${var.instances}"
+  name  = "humio-pd-ssd-${count.index + 1}-${lookup(var.zones, count.index % var.instances / var.instances_per_zone)}-data"
+  type  = "pd-ssd"
+  zone  = "${var.region}-${lookup(var.zones, count.index % var.instances / var.instances_per_zone)}"
+  size  = "${var.humio_disk_size}"
 }
 
 resource "google_compute_instance" "humios" {
- count = "${var.instances}"
- name = "${format("humio%02d-%s-%s", count.index + 1, var.region, lookup(var.zones, count.index % var.instances / var.instances_per_zone))}"
- machine_type = "${var.machine_type}"
- zone         = "${var.region}-${lookup(var.zones, count.index % var.instances / var.instances_per_zone)}"
+  count        = "${var.instances}"
+  name         = "${format("humio%02d-%s-%s", count.index + 1, var.region, lookup(var.zones, count.index % var.instances / var.instances_per_zone))}"
+  machine_type = "${var.machine_type}"
+  zone         = "${var.region}-${lookup(var.zones, count.index % var.instances / var.instances_per_zone)}"
 
- attached_disk {
+  attached_disk {
     source      = "${element(google_compute_disk.humio-pd-ssd.*.self_link, count.index)}"
     device_name = "${element(google_compute_disk.humio-pd-ssd.*.name, count.index)}"
- }
+  }
 
- boot_disk {
-   initialize_params {
-     image = "${var.boot_disk_image}"
-     size = "${var.boot_disk_size}"
-   }
- }
- scratch_disk {
-     interface = "NVME"
- }
+  boot_disk {
+    initialize_params {
+      image = "${var.boot_disk_image}"
+      size  = "${var.boot_disk_size}"
+    }
+  }
 
-#  metadata {
-#    sshKeys = "${var.ansible_ssh_user}:${var.access_pub_key}"
-#  }
+  scratch_disk {
+    interface = "NVME"
+  }
 
- tags = [
-        "${count.index < var.zookeepers ? "zookeepers" : "no-zookeepers"}",
-        "kafkas",
-        "humios"
+  tags = [
+    "${count.index < var.zookeepers ? "zookeepers" : "no-zookeepers"}",
+    "kafkas",
+    "humios"
   ]
 
+  metadata_startup_script = <<SCRIPT
+  sudo apt-get update
+  sudo apt-get install -yq build-essential python jq docker.io
+  sudo mkdir -p /etc/ansible/facts.d/
+  sudo echo ${count.index + 1} > /etc/ansible/facts.d/cluster_index.fact
 
- metadata_startup_script = <<SCRIPT
- sudo apt-get update
- sudo apt-get install -yq build-essential python jq docker.io
- sudo mkdir -p /etc/ansible/facts.d/
- sudo echo ${count.index + 1} > /etc/ansible/facts.d/cluster_index.fact
+  sudo echo ${google_service_account_key.default.private_key} | base64 -d | jq -r '.private_key' > /var/lib/service-account.key
+  sudo chown ubuntu:ubuntu /var/lib/service-account.key
 
- sudo echo ${google_service_account_key.default.private_key} | base64 -d | jq -r '.private_key' > /var/lib/service-account.key
- sudo chown ubuntu:ubuntu /var/lib/service-account.key
+  sudo chmod 600 /var/lib/service-account.key
+  sudo mkdir /home/ubuntu/.ssh; sudo touch /home/ubuntu/.ssh
+  sudo chown -R ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
 
- sudo chmod 600 /var/lib/service-account.key
- sudo mkdir /home/ubuntu/.ssh; sudo touch /home/ubuntu/.ssh
- sudo chown -R ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
-
- sudo bash -c 'cat << EOF > /var/lib/gce.ini
+  sudo bash -c 'cat << EOF > /var/lib/gce.ini
 [gce]
 libcloud_secrets =
 
@@ -79,7 +73,7 @@ cache_path = ~/.ansible/tmp
 cache_max_age = 300
 EOF'
 
- sudo bash -c 'cat << EOF > /bootstrap.sh
+  sudo bash -c 'cat << EOF > /bootstrap.sh
 #!/bin/sh
 
 sudo docker run --rm \
@@ -89,9 +83,9 @@ sudo docker run --rm \
   humio/ansible
 EOF'
 
- sudo chmod +x /bootstrap.sh
+  sudo chmod +x /bootstrap.sh
 
- sudo bash -c 'cat << EOF > /etc/systemd/system/bootstrap.service
+  sudo bash -c 'cat << EOF > /etc/systemd/system/bootstrap.service
 [Unit]
 Description=Run Ansible
 After=network.target
@@ -103,39 +97,32 @@ StandardOutput=journal
 [Install]
 WantedBy=multi-user.target
 EOF'
- sudo systemctl daemon-reload
- sudo systemctl start bootstrap.service
- SCRIPT
+  sudo systemctl daemon-reload
+  sudo systemctl start bootstrap.service
+  SCRIPT
 
- network_interface {
-   network = "${google_compute_network.vpc_network.name}"
-    access_config {
-      // Ephemeral IP
-    }
+  network_interface {
+    network = "${google_compute_network.vpc_network.name}"
+     access_config {
+       // Ephemeral IP
+     }
 
- }
+  }
 }
 
-resource "null_resource" "test" {
-  #count = "3"
+resource "null_resource" "dependency" {
   triggers = {
-    #instances = "${join(",", slice(google_compute_instance.humios.*.self_link, count.index * var.instances_per_zone, count.index * var.instances_per_zone + var.instances_per_zone))}"
     instances = "${join(",", slice(google_compute_instance.humios.*.self_link, 0, var.instances))}"
   }
 }
 
 locals {
-  #dependency_id = "${element(concat(null_resource.test.*.id, list("disabled")), 0)}"
-  dependency_id = "${null_resource.test.id}"
+  dependency_id = "${null_resource.dependency.id}"
 }
 
 resource "google_compute_instance_group" "humionodes" {
-  count = "3"
-  #name = "${element(split("|", "${local.dependency_id}|${element(concat(google_compute_instance_group_manager.default.*.name, list("unused")), 0)}"), 1)}"
-
-  name = "humio-nodes-${lookup(var.zones, count.index % 3)}-${local.dependency_id}"
-
-  #name        = "humio-nodes-${concat(lookup(var.zones, count.index % 3), local.dependency_id)}"
+  count       = "3"
+  name        = "humio-nodes-${lookup(var.zones, count.index % 3)}-${local.dependency_id}"
   description = "humio-nodes-${lookup(var.zones, count.index % 3)}"
 
   instances = ["${slice(google_compute_instance.humios.*.self_link, count.index * var.instances_per_zone, count.index * var.instances_per_zone + var.instances_per_zone)}"]
@@ -144,7 +131,8 @@ resource "google_compute_instance_group" "humionodes" {
     name = "http"
     port = "8080"
   }
-   named_port {
+
+  named_port {
     name = "https"
     port = "443"
   }
