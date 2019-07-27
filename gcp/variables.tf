@@ -42,6 +42,11 @@ variable "humio_disk_size" {
   type = "string"
   default = "500"
 }
+
+variable "kafka_disk_size" {
+  type = "string"
+  default = "300"
+}
 variable "external_access_ips" {
   type = "list"
   default = []
