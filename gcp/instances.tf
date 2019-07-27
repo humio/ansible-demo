@@ -26,7 +26,7 @@ resource "google_compute_instance" "humio01" {
     interface = "NVME"
   }
   tags = [
-    "zookepeers",
+    "zookeepers",
     "kafkas",
     "humios"
   ]
@@ -130,7 +130,7 @@ resource "google_compute_instance" "humio02" {
 
 
   tags = [
-    "zookeeepers",
+    "zookeepers",
     "kafkas",
     "humios"
   ]
