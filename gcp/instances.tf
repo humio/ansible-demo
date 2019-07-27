@@ -1,7 +1,8 @@
+
 resource "google_compute_instance" "humio01" {
 
 
-  name         = "humio01"
+  name         = "humio"
   machine_type = "${var.machine_type}"
   zone         = "${format("%s-a", var.region)}"
 
@@ -11,42 +12,38 @@ resource "google_compute_instance" "humio01" {
       size  = "${var.boot_disk_size}"
     }
   }
-
   attached_disk {
-    source      = "${google_compute_disk.humio01-pd-ssd-a.*.self_link}"
-    device_name = "${google_compute_disk.humio01-pd-ssd-a.*.name}"
+    source      = "${google_compute_disk.humio01-pd-ssd-a.self_link}"
+    device_name = "${google_compute_disk.humio01-pd-ssd-a.name}"
   }
 
   attached_disk {
-    source      = "${google_compute_disk.humio01-kafka-pd-ssd-a.*.self_link}"
-    device_name = "${google_compute_disk.humio01-kafka-pd-ssd-a.*.name}"
+    source      = "${google_compute_disk.humio01-kafka-pd-ssd-a.self_link}"
+    device_name = "${google_compute_disk.humio01-kafka-pd-ssd-a.name}"
   }
 
   scratch_disk {
     interface = "NVME"
   }
-
-
   tags = [
     "zookepers",
     "kafkas",
     "humios"
   ]
-
-  metadata_startup_script = <<SCRIPT
+    metadata_startup_script = <<script
   sudo apt-get update
   sudo apt-get install -yq build-essential python jq docker.io
   sudo mkdir -p /etc/ansible/facts.d/
-  sudo echo ${count.index + 1} > /etc/ansible/facts.d/cluster_index.fact
+  sudo echo 1 > /etc/ansible/facts.d/cluster_index.fact
 
   sudo echo ${google_service_account_key.default.private_key} | base64 -d | jq -r '.private_key' > /var/lib/service-account.key
   sudo chown ubuntu:ubuntu /var/lib/service-account.key
 
   sudo chmod 600 /var/lib/service-account.key
   sudo mkdir /home/ubuntu/.ssh; sudo touch /home/ubuntu/.ssh
-  sudo chown -R ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
+  sudo chown -r ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
 
-  sudo bash -c 'cat << EOF > /var/lib/gce.ini
+  sudo bash -c 'cat << eof > /var/lib/gce.ini
 [gce]
 libcloud_secrets =
 
@@ -61,9 +58,9 @@ inventory_ip_type = internal
 [cache]
 cache_path = ~/.ansible/tmp
 cache_max_age = 300
-EOF'
+eof'
 
-  sudo bash -c 'cat << EOF > /bootstrap.sh
+  sudo bash -c 'cat << eof > /bootstrap.sh
 #!/bin/sh
 
 sudo docker run --rm \
@@ -71,33 +68,35 @@ sudo docker run --rm \
   -v /var/lib/service-account.key:/service-account.pem \
   -v /var/lib/gce.ini:/etc/ansible/gce.ini \
   humio/ansible
-EOF'
+eof'
 
   sudo chmod +x /bootstrap.sh
 
-  sudo bash -c 'cat << EOF > /etc/systemd/system/bootstrap.service
-[Unit]
-Description=Run Ansible
-After=network.target
-[Service]
-Type=oneshot
-ExecStart=/bootstrap.sh
-RemainAfterExit=true
-StandardOutput=journal
-[Install]
-WantedBy=multi-user.target
-EOF'
+  sudo bash -c 'cat << eof > /etc/systemd/system/bootstrap.service
+[unit]
+description=run ansible
+after=network.target
+[service]
+type=oneshot
+execstart=/bootstrap.sh
+remainafterexit=true
+standardoutput=journal
+[install]
+wantedby=multi-user.target
+eof'
   sudo systemctl daemon-reload
   sudo systemctl start bootstrap.service
-  SCRIPT
+  script
 
   network_interface {
     network = "${google_compute_network.vpc_network.name}"
      access_config {
-       // Ephemeral IP
+       // ephemeral ip
      }
 
   }
+
+
 
 }
 
@@ -116,13 +115,13 @@ resource "google_compute_instance" "humio02" {
   }
 
   attached_disk {
-    source      = "${google_compute_disk.humio02-pd-ssd-b.*.self_link}"
-    device_name = "${google_compute_disk.humio02-pd-ssd-b.*.name}"
+    source      = "${google_compute_disk.humio02-pd-ssd-b.self_link}"
+    device_name = "${google_compute_disk.humio02-pd-ssd-b.name}"
   }
 
   attached_disk {
-    source      = "${google_compute_disk.humio02-kafka-pd-ssd-b.*.self_link}"
-    device_name = "${google_compute_disk.humio02-kafka-pd-ssd-b.*.name}"
+    source      = "${google_compute_disk.humio02-kafka-pd-ssd-b.self_link}"
+    device_name = "${google_compute_disk.humio02-kafka-pd-ssd-b.name}"
   }
 
   scratch_disk {
@@ -135,20 +134,20 @@ resource "google_compute_instance" "humio02" {
     "kafkas",
     "humios"
   ]
-    metadata_startup_script = <<SCRIPT
+    metadata_startup_script = <<script
   sudo apt-get update
   sudo apt-get install -yq build-essential python jq docker.io
   sudo mkdir -p /etc/ansible/facts.d/
-  sudo echo ${count.index + 1} > /etc/ansible/facts.d/cluster_index.fact
+  sudo echo 2 > /etc/ansible/facts.d/cluster_index.fact
 
   sudo echo ${google_service_account_key.default.private_key} | base64 -d | jq -r '.private_key' > /var/lib/service-account.key
   sudo chown ubuntu:ubuntu /var/lib/service-account.key
 
   sudo chmod 600 /var/lib/service-account.key
   sudo mkdir /home/ubuntu/.ssh; sudo touch /home/ubuntu/.ssh
-  sudo chown -R ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
+  sudo chown -r ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
 
-  sudo bash -c 'cat << EOF > /var/lib/gce.ini
+  sudo bash -c 'cat << eof > /var/lib/gce.ini
 [gce]
 libcloud_secrets =
 
@@ -163,9 +162,9 @@ inventory_ip_type = internal
 [cache]
 cache_path = ~/.ansible/tmp
 cache_max_age = 300
-EOF'
+eof'
 
-  sudo bash -c 'cat << EOF > /bootstrap.sh
+  sudo bash -c 'cat << eof > /bootstrap.sh
 #!/bin/sh
 
 sudo docker run --rm \
@@ -173,30 +172,30 @@ sudo docker run --rm \
   -v /var/lib/service-account.key:/service-account.pem \
   -v /var/lib/gce.ini:/etc/ansible/gce.ini \
   humio/ansible
-EOF'
+eof'
 
   sudo chmod +x /bootstrap.sh
 
-  sudo bash -c 'cat << EOF > /etc/systemd/system/bootstrap.service
-[Unit]
-Description=Run Ansible
-After=network.target
-[Service]
-Type=oneshot
-ExecStart=/bootstrap.sh
-RemainAfterExit=true
-StandardOutput=journal
-[Install]
-WantedBy=multi-user.target
-EOF'
+  sudo bash -c 'cat << eof > /etc/systemd/system/bootstrap.service
+[unit]
+description=run ansible
+after=network.target
+[service]
+type=oneshot
+execstart=/bootstrap.sh
+remainafterexit=true
+standardoutput=journal
+[install]
+wantedby=multi-user.target
+eof'
   sudo systemctl daemon-reload
   sudo systemctl start bootstrap.service
-  SCRIPT
+  script
 
   network_interface {
     network = "${google_compute_network.vpc_network.name}"
      access_config {
-       // Ephemeral IP
+       // ephemeral ip
      }
 
   }
@@ -216,13 +215,13 @@ resource "google_compute_instance" "humio03" {
   }
 
   attached_disk {
-    source      = "${google_compute_disk.humio03-pd-ssd-c.*.self_link}"
-    device_name = "${google_compute_disk.humio03-pd-ssd-c.*.name}"
+    source      = "${google_compute_disk.humio03-pd-ssd-c.self_link}"
+    device_name = "${google_compute_disk.humio03-pd-ssd-c.name}"
   }
 
   attached_disk {
-    source      = "${google_compute_disk.humio03-kafka-pd-ssd-c.*.self_link}"
-    device_name = "${google_compute_disk.humio03-kafka-pd-ssd-c.*.name}"
+    source      = "${google_compute_disk.humio03-kafka-pd-ssd-c.self_link}"
+    device_name = "${google_compute_disk.humio03-kafka-pd-ssd-c.name}"
   }
 
   scratch_disk {
@@ -235,20 +234,20 @@ resource "google_compute_instance" "humio03" {
     "kafkas",
     "humios"
   ]
-    metadata_startup_script = <<SCRIPT
+    metadata_startup_script = <<script
   sudo apt-get update
   sudo apt-get install -yq build-essential python jq docker.io
   sudo mkdir -p /etc/ansible/facts.d/
-  sudo echo ${count.index + 1} > /etc/ansible/facts.d/cluster_index.fact
+  sudo echo 3 > /etc/ansible/facts.d/cluster_index.fact
 
   sudo echo ${google_service_account_key.default.private_key} | base64 -d | jq -r '.private_key' > /var/lib/service-account.key
   sudo chown ubuntu:ubuntu /var/lib/service-account.key
 
   sudo chmod 600 /var/lib/service-account.key
   sudo mkdir /home/ubuntu/.ssh; sudo touch /home/ubuntu/.ssh
-  sudo chown -R ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
+  sudo chown -r ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
 
-  sudo bash -c 'cat << EOF > /var/lib/gce.ini
+  sudo bash -c 'cat << eof > /var/lib/gce.ini
 [gce]
 libcloud_secrets =
 
@@ -263,9 +262,9 @@ inventory_ip_type = internal
 [cache]
 cache_path = ~/.ansible/tmp
 cache_max_age = 300
-EOF'
+eof'
 
-  sudo bash -c 'cat << EOF > /bootstrap.sh
+  sudo bash -c 'cat << eof > /bootstrap.sh
 #!/bin/sh
 
 sudo docker run --rm \
@@ -273,30 +272,30 @@ sudo docker run --rm \
   -v /var/lib/service-account.key:/service-account.pem \
   -v /var/lib/gce.ini:/etc/ansible/gce.ini \
   humio/ansible
-EOF'
+eof'
 
   sudo chmod +x /bootstrap.sh
 
-  sudo bash -c 'cat << EOF > /etc/systemd/system/bootstrap.service
-[Unit]
-Description=Run Ansible
-After=network.target
-[Service]
-Type=oneshot
-ExecStart=/bootstrap.sh
-RemainAfterExit=true
-StandardOutput=journal
-[Install]
-WantedBy=multi-user.target
-EOF'
+  sudo bash -c 'cat << eof > /etc/systemd/system/bootstrap.service
+[unit]
+description=run ansible
+after=network.target
+[service]
+type=oneshot
+execstart=/bootstrap.sh
+remainafterexit=true
+standardoutput=journal
+[install]
+wantedby=multi-user.target
+eof'
   sudo systemctl daemon-reload
   sudo systemctl start bootstrap.service
-  SCRIPT
+  script
 
   network_interface {
     network = "${google_compute_network.vpc_network.name}"
      access_config {
-       // Ephemeral IP
+       // ephemeral ip
      }
 
   }
@@ -319,13 +318,13 @@ resource "google_compute_instance" "humio04" {
   }
 
   attached_disk {
-    source      = "${google_compute_disk.humio04-pd-ssd-a.*.self_link}"
-    device_name = "${google_compute_disk.humio04-pd-ssd-a.*.name}"
+    source      = "${google_compute_disk.humio04-pd-ssd-a.self_link}"
+    device_name = "${google_compute_disk.humio04-pd-ssd-a.name}"
   }
 
   attached_disk {
-    source      = "${google_compute_disk.humio04-kafka-pd-ssd-a.*.self_link}"
-    device_name = "${google_compute_disk.humio04-kafka-pd-ssd-a.*.name}"
+    source      = "${google_compute_disk.humio04-kafka-pd-ssd-a.self_link}"
+    device_name = "${google_compute_disk.humio04-kafka-pd-ssd-a.name}"
   }
 
   scratch_disk {
@@ -338,20 +337,20 @@ resource "google_compute_instance" "humio04" {
     "kafkas",
     "humios"
   ]
-    metadata_startup_script = <<SCRIPT
+    metadata_startup_script = <<script
   sudo apt-get update
   sudo apt-get install -yq build-essential python jq docker.io
   sudo mkdir -p /etc/ansible/facts.d/
-  sudo echo ${count.index + 1} > /etc/ansible/facts.d/cluster_index.fact
+  sudo echo 4 > /etc/ansible/facts.d/cluster_index.fact
 
   sudo echo ${google_service_account_key.default.private_key} | base64 -d | jq -r '.private_key' > /var/lib/service-account.key
   sudo chown ubuntu:ubuntu /var/lib/service-account.key
 
   sudo chmod 600 /var/lib/service-account.key
   sudo mkdir /home/ubuntu/.ssh; sudo touch /home/ubuntu/.ssh
-  sudo chown -R ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
+  sudo chown -r ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
 
-  sudo bash -c 'cat << EOF > /var/lib/gce.ini
+  sudo bash -c 'cat << eof > /var/lib/gce.ini
 [gce]
 libcloud_secrets =
 
@@ -366,9 +365,9 @@ inventory_ip_type = internal
 [cache]
 cache_path = ~/.ansible/tmp
 cache_max_age = 300
-EOF'
+eof'
 
-  sudo bash -c 'cat << EOF > /bootstrap.sh
+  sudo bash -c 'cat << eof > /bootstrap.sh
 #!/bin/sh
 
 sudo docker run --rm \
@@ -376,30 +375,30 @@ sudo docker run --rm \
   -v /var/lib/service-account.key:/service-account.pem \
   -v /var/lib/gce.ini:/etc/ansible/gce.ini \
   humio/ansible
-EOF'
+eof'
 
   sudo chmod +x /bootstrap.sh
 
-  sudo bash -c 'cat << EOF > /etc/systemd/system/bootstrap.service
-[Unit]
-Description=Run Ansible
-After=network.target
-[Service]
-Type=oneshot
-ExecStart=/bootstrap.sh
-RemainAfterExit=true
-StandardOutput=journal
-[Install]
-WantedBy=multi-user.target
-EOF'
+  sudo bash -c 'cat << eof > /etc/systemd/system/bootstrap.service
+[unit]
+description=run ansible
+after=network.target
+[service]
+type=oneshot
+execstart=/bootstrap.sh
+remainafterexit=true
+standardoutput=journal
+[install]
+wantedby=multi-user.target
+eof'
   sudo systemctl daemon-reload
   sudo systemctl start bootstrap.service
-  SCRIPT
+  script
 
   network_interface {
     network = "${google_compute_network.vpc_network.name}"
      access_config {
-       // Ephemeral IP
+       // ephemeral ip
      }
 
   }
@@ -421,13 +420,13 @@ resource "google_compute_instance" "humio05" {
   }
 
   attached_disk {
-    source      = "${google_compute_disk.humio05-pd-ssd-b.*.self_link}"
-    device_name = "${google_compute_disk.humio05-pd-ssd-b.*.name}"
+    source      = "${google_compute_disk.humio05-pd-ssd-b.self_link}"
+    device_name = "${google_compute_disk.humio05-pd-ssd-b.name}"
   }
 
   attached_disk {
-    source      = "${google_compute_disk.humio05-kafka-pd-ssd-b.*.self_link}"
-    device_name = "${google_compute_disk.humio05-kafka-pd-ssd-b.*.name}"
+    source      = "${google_compute_disk.humio05-kafka-pd-ssd-b.self_link}"
+    device_name = "${google_compute_disk.humio05-kafka-pd-ssd-b.name}"
   }
 
   scratch_disk {
@@ -440,20 +439,20 @@ resource "google_compute_instance" "humio05" {
     "kafkas",
     "humios"
   ]
-    metadata_startup_script = <<SCRIPT
+    metadata_startup_script = <<script
   sudo apt-get update
   sudo apt-get install -yq build-essential python jq docker.io
   sudo mkdir -p /etc/ansible/facts.d/
-  sudo echo ${count.index + 1} > /etc/ansible/facts.d/cluster_index.fact
+  sudo echo 5 > /etc/ansible/facts.d/cluster_index.fact
 
   sudo echo ${google_service_account_key.default.private_key} | base64 -d | jq -r '.private_key' > /var/lib/service-account.key
   sudo chown ubuntu:ubuntu /var/lib/service-account.key
 
   sudo chmod 600 /var/lib/service-account.key
   sudo mkdir /home/ubuntu/.ssh; sudo touch /home/ubuntu/.ssh
-  sudo chown -R ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
+  sudo chown -r ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
 
-  sudo bash -c 'cat << EOF > /var/lib/gce.ini
+  sudo bash -c 'cat << eof > /var/lib/gce.ini
 [gce]
 libcloud_secrets =
 
@@ -468,9 +467,9 @@ inventory_ip_type = internal
 [cache]
 cache_path = ~/.ansible/tmp
 cache_max_age = 300
-EOF'
+eof'
 
-  sudo bash -c 'cat << EOF > /bootstrap.sh
+  sudo bash -c 'cat << eof > /bootstrap.sh
 #!/bin/sh
 
 sudo docker run --rm \
@@ -478,30 +477,30 @@ sudo docker run --rm \
   -v /var/lib/service-account.key:/service-account.pem \
   -v /var/lib/gce.ini:/etc/ansible/gce.ini \
   humio/ansible
-EOF'
+eof'
 
   sudo chmod +x /bootstrap.sh
 
-  sudo bash -c 'cat << EOF > /etc/systemd/system/bootstrap.service
-[Unit]
-Description=Run Ansible
-After=network.target
-[Service]
-Type=oneshot
-ExecStart=/bootstrap.sh
-RemainAfterExit=true
-StandardOutput=journal
-[Install]
-WantedBy=multi-user.target
-EOF'
+  sudo bash -c 'cat << eof > /etc/systemd/system/bootstrap.service
+[unit]
+description=run ansible
+after=network.target
+[service]
+type=oneshot
+execstart=/bootstrap.sh
+remainafterexit=true
+standardoutput=journal
+[install]
+wantedby=multi-user.target
+eof'
   sudo systemctl daemon-reload
   sudo systemctl start bootstrap.service
-  SCRIPT
+  script
 
   network_interface {
     network = "${google_compute_network.vpc_network.name}"
      access_config {
-       // Ephemeral IP
+       // ephemeral ip
      }
 
   }
@@ -524,13 +523,13 @@ resource "google_compute_instance" "humio06" {
   }
 
   attached_disk {
-    source      = "${google_compute_disk.humio06-pd-ssd-c.*.self_link}"
-    device_name = "${google_compute_disk.humio06-pd-ssd-c.*.name}"
+    source      = "${google_compute_disk.humio06-pd-ssd-c.self_link}"
+    device_name = "${google_compute_disk.humio06-pd-ssd-c.name}"
   }
 
   attached_disk {
-    source      = "${google_compute_disk.humio06-kafka-pd-ssd-c.*.self_link}"
-    device_name = "${google_compute_disk.humio06-kafka-pd-ssd-c.*.name}"
+    source      = "${google_compute_disk.humio06-kafka-pd-ssd-c.self_link}"
+    device_name = "${google_compute_disk.humio06-kafka-pd-ssd-c.name}"
   }
 
   scratch_disk {
@@ -543,20 +542,20 @@ resource "google_compute_instance" "humio06" {
     "kafkas",
     "humios"
   ]
-    metadata_startup_script = <<SCRIPT
+    metadata_startup_script = <<script
   sudo apt-get update
   sudo apt-get install -yq build-essential python jq docker.io
   sudo mkdir -p /etc/ansible/facts.d/
-  sudo echo ${count.index + 1} > /etc/ansible/facts.d/cluster_index.fact
+  sudo echo 6 > /etc/ansible/facts.d/cluster_index.fact
 
   sudo echo ${google_service_account_key.default.private_key} | base64 -d | jq -r '.private_key' > /var/lib/service-account.key
   sudo chown ubuntu:ubuntu /var/lib/service-account.key
 
   sudo chmod 600 /var/lib/service-account.key
   sudo mkdir /home/ubuntu/.ssh; sudo touch /home/ubuntu/.ssh
-  sudo chown -R ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
+  sudo chown -r ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
 
-  sudo bash -c 'cat << EOF > /var/lib/gce.ini
+  sudo bash -c 'cat << eof > /var/lib/gce.ini
 [gce]
 libcloud_secrets =
 
@@ -572,9 +571,9 @@ inventory_ip_type = internal
 [cache]
 cache_path = ~/.ansible/tmp
 cache_max_age = 300
-EOF'
+eof'
 
-  sudo bash -c 'cat << EOF > /bootstrap.sh
+  sudo bash -c 'cat << eof > /bootstrap.sh
 #!/bin/sh
 
 sudo docker run --rm \
@@ -582,30 +581,30 @@ sudo docker run --rm \
   -v /var/lib/service-account.key:/service-account.pem \
   -v /var/lib/gce.ini:/etc/ansible/gce.ini \
   humio/ansible
-EOF'
+eof'
 
   sudo chmod +x /bootstrap.sh
 
-  sudo bash -c 'cat << EOF > /etc/systemd/system/bootstrap.service
-[Unit]
-Description=Run Ansible
-After=network.target
-[Service]
-Type=oneshot
-ExecStart=/bootstrap.sh
-RemainAfterExit=true
-StandardOutput=journal
-[Install]
-WantedBy=multi-user.target
-EOF'
+  sudo bash -c 'cat << eof > /etc/systemd/system/bootstrap.service
+[unit]
+description=run ansible
+after=network.target
+[service]
+type=oneshot
+execstart=/bootstrap.sh
+remainafterexit=true
+standardoutput=journal
+[install]
+wantedby=multi-user.target
+eof'
   sudo systemctl daemon-reload
   sudo systemctl start bootstrap.service
-  SCRIPT
+  script
 
   network_interface {
     network = "${google_compute_network.vpc_network.name}"
      access_config {
-       // Ephemeral IP
+       // ephemeral ip
      }
 
   }
@@ -628,13 +627,13 @@ resource "google_compute_instance" "humio07" {
   }
 
   attached_disk {
-    source      = "${google_compute_disk.humio07-pd-ssd-a.*.self_link}"
-    device_name = "${google_compute_disk.humio07-pd-ssd-a.*.name}"
+    source      = "${google_compute_disk.humio07-pd-ssd-a.self_link}"
+    device_name = "${google_compute_disk.humio07-pd-ssd-a.name}"
   }
 
   attached_disk {
-    source      = "${google_compute_disk.humio07-kafka-pd-ssd-a.*.self_link}"
-    device_name = "${google_compute_disk.humio07-pd-ssd-a.*.name}"
+    source      = "${google_compute_disk.humio07-kafka-pd-ssd-a.self_link}"
+    device_name = "${google_compute_disk.humio07-kafka-pd-ssd-a.name}"
   }
 
   scratch_disk {
@@ -647,20 +646,20 @@ resource "google_compute_instance" "humio07" {
     "kafkas",
     "humios"
   ]
-    metadata_startup_script = <<SCRIPT
+    metadata_startup_script = <<script
   sudo apt-get update
   sudo apt-get install -yq build-essential python jq docker.io
   sudo mkdir -p /etc/ansible/facts.d/
-  sudo echo ${count.index + 1} > /etc/ansible/facts.d/cluster_index.fact
+  sudo echo 7 > /etc/ansible/facts.d/cluster_index.fact
 
   sudo echo ${google_service_account_key.default.private_key} | base64 -d | jq -r '.private_key' > /var/lib/service-account.key
   sudo chown ubuntu:ubuntu /var/lib/service-account.key
 
   sudo chmod 600 /var/lib/service-account.key
   sudo mkdir /home/ubuntu/.ssh; sudo touch /home/ubuntu/.ssh
-  sudo chown -R ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
+  sudo chown -r ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
 
-  sudo bash -c 'cat << EOF > /var/lib/gce.ini
+  sudo bash -c 'cat << eof > /var/lib/gce.ini
 [gce]
 libcloud_secrets =
 
@@ -675,9 +674,9 @@ inventory_ip_type = internal
 [cache]
 cache_path = ~/.ansible/tmp
 cache_max_age = 300
-EOF'
+eof'
 
-  sudo bash -c 'cat << EOF > /bootstrap.sh
+  sudo bash -c 'cat << eof > /bootstrap.sh
 #!/bin/sh
 
 sudo docker run --rm \
@@ -685,30 +684,30 @@ sudo docker run --rm \
   -v /var/lib/service-account.key:/service-account.pem \
   -v /var/lib/gce.ini:/etc/ansible/gce.ini \
   humio/ansible
-EOF'
+eof'
 
   sudo chmod +x /bootstrap.sh
 
-  sudo bash -c 'cat << EOF > /etc/systemd/system/bootstrap.service
-[Unit]
-Description=Run Ansible
-After=network.target
-[Service]
-Type=oneshot
-ExecStart=/bootstrap.sh
-RemainAfterExit=true
-StandardOutput=journal
-[Install]
-WantedBy=multi-user.target
-EOF'
+  sudo bash -c 'cat << eof > /etc/systemd/system/bootstrap.service
+[unit]
+description=run ansible
+after=network.target
+[service]
+type=oneshot
+execstart=/bootstrap.sh
+remainafterexit=true
+standardoutput=journal
+[install]
+wantedby=multi-user.target
+eof'
   sudo systemctl daemon-reload
   sudo systemctl start bootstrap.service
-  SCRIPT
+  script
 
   network_interface {
     network = "${google_compute_network.vpc_network.name}"
      access_config {
-       // Ephemeral IP
+       // ephemeral ip
      }
 
   }
@@ -732,13 +731,13 @@ resource "google_compute_instance" "humio08" {
 
 
   attached_disk {
-    source      = "${google_compute_disk.humio08-pd-ssd-b.*.self_link}"
-    device_name = "${google_compute_disk.humio08-pd-ssd-b.*.name}"
+    source      = "${google_compute_disk.humio08-pd-ssd-b.self_link}"
+    device_name = "${google_compute_disk.humio08-pd-ssd-b.name}"
   }
 
   attached_disk {
-    source      = "${google_compute_disk.humio08-kafka-pd-ssd-b.*.self_link}"
-    device_name = "${google_compute_disk.humio08-kafka-pd-ssd-b.*.name}"
+    source      = "${google_compute_disk.humio08-kafka-pd-ssd-b.self_link}"
+    device_name = "${google_compute_disk.humio08-kafka-pd-ssd-b.name}"
   }
 
   scratch_disk {
@@ -750,20 +749,20 @@ resource "google_compute_instance" "humio08" {
     "kafkas",
     "humios"
   ]
-    metadata_startup_script = <<SCRIPT
+    metadata_startup_script = <<script
   sudo apt-get update
   sudo apt-get install -yq build-essential python jq docker.io
   sudo mkdir -p /etc/ansible/facts.d/
-  sudo echo ${count.index + 1} > /etc/ansible/facts.d/cluster_index.fact
+  sudo echo 8 > /etc/ansible/facts.d/cluster_index.fact
 
   sudo echo ${google_service_account_key.default.private_key} | base64 -d | jq -r '.private_key' > /var/lib/service-account.key
   sudo chown ubuntu:ubuntu /var/lib/service-account.key
 
   sudo chmod 600 /var/lib/service-account.key
   sudo mkdir /home/ubuntu/.ssh; sudo touch /home/ubuntu/.ssh
-  sudo chown -R ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
+  sudo chown -r ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
 
-  sudo bash -c 'cat << EOF > /var/lib/gce.ini
+  sudo bash -c 'cat << eof > /var/lib/gce.ini
 [gce]
 libcloud_secrets =
 
@@ -778,9 +777,9 @@ inventory_ip_type = internal
 [cache]
 cache_path = ~/.ansible/tmp
 cache_max_age = 300
-EOF'
+eof'
 
-  sudo bash -c 'cat << EOF > /bootstrap.sh
+  sudo bash -c 'cat << eof > /bootstrap.sh
 #!/bin/sh
 
 sudo docker run --rm \
@@ -788,30 +787,30 @@ sudo docker run --rm \
   -v /var/lib/service-account.key:/service-account.pem \
   -v /var/lib/gce.ini:/etc/ansible/gce.ini \
   humio/ansible
-EOF'
+eof'
 
   sudo chmod +x /bootstrap.sh
 
-  sudo bash -c 'cat << EOF > /etc/systemd/system/bootstrap.service
-[Unit]
-Description=Run Ansible
-After=network.target
-[Service]
-Type=oneshot
-ExecStart=/bootstrap.sh
-RemainAfterExit=true
-StandardOutput=journal
-[Install]
-WantedBy=multi-user.target
-EOF'
+  sudo bash -c 'cat << eof > /etc/systemd/system/bootstrap.service
+[unit]
+description=run ansible
+after=network.target
+[service]
+type=oneshot
+execstart=/bootstrap.sh
+remainafterexit=true
+standardoutput=journal
+[install]
+wantedby=multi-user.target
+eof'
   sudo systemctl daemon-reload
   sudo systemctl start bootstrap.service
-  SCRIPT
+  script
 
   network_interface {
     network = "${google_compute_network.vpc_network.name}"
      access_config {
-       // Ephemeral IP
+       // ephemeral ip
      }
 
   }
@@ -834,13 +833,13 @@ resource "google_compute_instance" "humio09" {
   }
 
   attached_disk {
-    source      = "${google_compute_disk.humio09-pd-ssd-c.*.self_link}"
-    device_name = "${google_compute_disk.humio09-pd-ssd-c.*.name}"
+    source      = "${google_compute_disk.humio09-pd-ssd-c.self_link}"
+    device_name = "${google_compute_disk.humio09-pd-ssd-c.name}"
   }
 
   attached_disk {
-    source      = "${google_compute_disk.humio09-kafka-pd-ssd-c.*.self_link}"
-    device_name = "${google_compute_disk.humio09-kafka-pd-ssd-c.*.name}"
+    source      = "${google_compute_disk.humio09-kafka-pd-ssd-c.self_link}"
+    device_name = "${google_compute_disk.humio09-kafka-pd-ssd-c.name}"
   }
 
 
@@ -853,20 +852,20 @@ resource "google_compute_instance" "humio09" {
     "kafkas",
     "humios"
   ]
-  metadata_startup_script = <<SCRIPT
+  metadata_startup_script = <<script
   sudo apt-get update
   sudo apt-get install -yq build-essential python jq docker.io
   sudo mkdir -p /etc/ansible/facts.d/
-  sudo echo ${count.index + 1} > /etc/ansible/facts.d/cluster_index.fact
+  sudo echo 9 > /etc/ansible/facts.d/cluster_index.fact
 
   sudo echo ${google_service_account_key.default.private_key} | base64 -d | jq -r '.private_key' > /var/lib/service-account.key
   sudo chown ubuntu:ubuntu /var/lib/service-account.key
 
   sudo chmod 600 /var/lib/service-account.key
   sudo mkdir /home/ubuntu/.ssh; sudo touch /home/ubuntu/.ssh
-  sudo chown -R ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
+  sudo chown -r ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
 
-  sudo bash -c 'cat << EOF > /var/lib/gce.ini
+  sudo bash -c 'cat << eof > /var/lib/gce.ini
 [gce]
 libcloud_secrets =
 
@@ -881,9 +880,9 @@ inventory_ip_type = internal
 [cache]
 cache_path = ~/.ansible/tmp
 cache_max_age = 300
-EOF'
+eof'
 
-  sudo bash -c 'cat << EOF > /bootstrap.sh
+  sudo bash -c 'cat << eof > /bootstrap.sh
 #!/bin/sh
 
 sudo docker run --rm \
@@ -891,99 +890,32 @@ sudo docker run --rm \
   -v /var/lib/service-account.key:/service-account.pem \
   -v /var/lib/gce.ini:/etc/ansible/gce.ini \
   humio/ansible
-EOF'
+eof'
 
   sudo chmod +x /bootstrap.sh
 
-  sudo bash -c 'cat << EOF > /etc/systemd/system/bootstrap.service
-[Unit]
-Description=Run Ansible
-After=network.target
-[Service]
-Type=oneshot
-ExecStart=/bootstrap.sh
-RemainAfterExit=true
-StandardOutput=journal
-[Install]
-WantedBy=multi-user.target
-EOF'
+  sudo bash -c 'cat << eof > /etc/systemd/system/bootstrap.service
+[unit]
+description=run ansible
+after=network.target
+[service]
+type=oneshot
+execstart=/bootstrap.sh
+remainafterexit=true
+standardoutput=journal
+[install]
+wantedby=multi-user.target
+eof'
   sudo systemctl daemon-reload
   sudo systemctl start bootstrap.service
-  SCRIPT
+  script
 
   network_interface {
     network = "${google_compute_network.vpc_network.name}"
      access_config {
-       // Ephemeral IP
+       // ephemeral ip
      }
 
   }
 }
 
-
-resource "google_compute_instance_group" "humionodes_a" {
-  name        = "humio-nodes-a"
-  description = "humio-nodes-a"
-
-  instances = [
-                "${google_compute_instance.humio01.self_link}",
-                "${google_compute_instance.humio04.self_link}",
-                "${google_compute_instance.humio07.self_link}"
-              ]
-
-  named_port {
-    name = "http"
-    port = "8080"
-  }
-
-  named_port {
-    name = "https"
-    port = "443"
-  }
-
-  zone = "${var.region}-a"
-}
-resource "google_compute_instance_group" "humionodes_b" {
-  name        = "humio-nodes-b"
-  description = "humio-nodes-b"
-
-  instances = [
-                "${google_compute_instance.humio02.self_link}",
-                "${google_compute_instance.humio05.self_link}",
-                "${google_compute_instance.humio08.self_link}"
-              ]
-
-  named_port {
-    name = "http"
-    port = "8080"
-  }
-
-  named_port {
-    name = "https"
-    port = "443"
-  }
-
-  zone = "${var.region}-b"
-}
-resource "google_compute_instance_group" "humionodes_c" {
-  name        = "humio-nodes-c"
-  description = "humio-nodes-c"
-
-  instances = [
-                "${google_compute_instance.humio03.self_link}",
-                "${google_compute_instance.humio06.self_link}",
-                "${google_compute_instance.humio09.self_link}"
-              ]
-
-  named_port {
-    name = "http"
-    port = "8080"
-  }
-
-  named_port {
-    name = "https"
-    port = "443"
-  }
-
-  zone = "${var.region}-c"
-}

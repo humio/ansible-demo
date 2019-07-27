@@ -57,17 +57,17 @@ resource "google_compute_backend_service" "humio" {
   protocol    = "HTTP"
   timeout_sec = 10
 
-  backend {
-    group = "${google_compute_instance_group.humionodes_a.self_link}"
-  }
+  # backend {
+  #   group = "${google_compute_instance_group.humionodes.self_link}"
+  # }
 
-  backend {
-    group = "${google_compute_instance_group.humionodes_b.self_link}"
-  }
+  # backend {
+  #   group = "${google_compute_instance_group.humionodes_b.self_link}"
+  # }
 
-  backend {
-    group = "${google_compute_instance_group.humionodes_c.self_link}"
-  }
+  # backend {
+  #   group = "${google_compute_instance_group.humionodes_c.self_link}"
+  # }
 
   health_checks = ["${google_compute_http_health_check.default.self_link}"]
 }
