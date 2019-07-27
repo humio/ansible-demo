@@ -2,7 +2,7 @@
 resource "google_compute_instance" "humio01" {
 
 
-  name         = "humio"
+  name         = "humio01"
   machine_type = "${var.machine_type}"
   zone         = "${format("%s-a", var.region)}"
 
@@ -26,7 +26,7 @@ resource "google_compute_instance" "humio01" {
     interface = "NVME"
   }
   tags = [
-    "zookepers",
+    "zookepeers",
     "kafkas",
     "humios"
   ]
@@ -130,7 +130,7 @@ resource "google_compute_instance" "humio02" {
 
 
   tags = [
-    "zookepers",
+    "zookeeepers",
     "kafkas",
     "humios"
   ]
@@ -230,7 +230,7 @@ resource "google_compute_instance" "humio03" {
 
 
   tags = [
-    "zookepers",
+    "zookeepers",
     "kafkas",
     "humios"
   ]
@@ -333,7 +333,6 @@ resource "google_compute_instance" "humio04" {
 
 
   tags = [
-    "zookepers",
     "kafkas",
     "humios"
   ]
@@ -435,7 +434,6 @@ resource "google_compute_instance" "humio05" {
 
 
   tags = [
-    "zookepers",
     "kafkas",
     "humios"
   ]
@@ -538,8 +536,6 @@ resource "google_compute_instance" "humio06" {
 
 
   tags = [
-    "zookepers",
-    "kafkas",
     "humios"
   ]
     metadata_startup_script = <<script
@@ -642,8 +638,6 @@ resource "google_compute_instance" "humio07" {
 
 
   tags = [
-    "zookepers",
-    "kafkas",
     "humios"
   ]
     metadata_startup_script = <<script
@@ -745,8 +739,6 @@ resource "google_compute_instance" "humio08" {
   }
 
   tags = [
-    "zookepers",
-    "kafkas",
     "humios"
   ]
     metadata_startup_script = <<script
@@ -848,8 +840,6 @@ resource "google_compute_instance" "humio09" {
   }
 
   tags = [
-    "zookepers",
-    "kafkas",
     "humios"
   ]
   metadata_startup_script = <<script
