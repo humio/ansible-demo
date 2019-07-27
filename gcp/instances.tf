@@ -1,4 +1,4 @@
-resource "google_compute_instance" "humioa" {
+resource "google_compute_instance" "humio01" {
 
 
   name         = "humio01"
@@ -304,7 +304,7 @@ EOF'
 }
 
 
-resource "google_compute_instance" "humiob" {
+resource "google_compute_instance" "humio04" {
 
 
   name         = "humio04"
@@ -613,7 +613,7 @@ EOF'
 }
 
 
-resource "google_compute_instance" "humioc" {
+resource "google_compute_instance" "humio07" {
 
 
   name         = "humio07"
@@ -926,9 +926,9 @@ resource "google_compute_instance_group" "humionodes_a" {
   description = "humio-nodes-a"
 
   instances = [
-                "${google_compute_instance.humioa.self_link}",
-                "${google_compute_instance.humiob.self_link}",
-                "${google_compute_instance.humioc.self_link}"
+                "${google_compute_instance.humio01.self_link}",
+                "${google_compute_instance.humio04.self_link}",
+                "${google_compute_instance.humio07.self_link}"
               ]
 
   named_port {
