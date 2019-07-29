@@ -14,7 +14,7 @@ resource "google_compute_http_health_check" "default" {
   request_path       = "/"
   check_interval_sec = 1
   timeout_sec        = 1
-  port = 8080
+  port = 8081
 }
 
 resource "google_compute_target_https_proxy" "default" {

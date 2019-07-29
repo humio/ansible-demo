@@ -9,3 +9,6 @@
 
 - src: humio.server
   version: 0.3.2
+
+- src: geerlingguy.firewall
+  version: 2.4.1

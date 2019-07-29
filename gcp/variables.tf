@@ -47,6 +47,12 @@ variable "kafka_disk_size" {
   type = "string"
   default = "300"
 }
+
+variable "zookeeper_disk_size" {
+  type = "string"
+  default = "50"
+}
+
 variable "external_access_ips" {
   type = "list"
   default = []

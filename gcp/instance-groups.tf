@@ -10,7 +10,7 @@ resource "google_compute_instance_group" "humionodes_a" {
 
   named_port {
     name = "http"
-    port = "8080"
+    port = "8081"
   }
 
   named_port {
@@ -33,7 +33,7 @@ resource "google_compute_instance_group" "humionodes_b" {
 
   named_port {
     name = "http"
-    port = "8080"
+    port = "8081"
   }
 
   named_port {
@@ -55,7 +55,7 @@ resource "google_compute_instance_group" "humionodes_c" {
 
   named_port {
     name = "http"
-    port = "8080"
+    port = "8081"
   }
 
   named_port {

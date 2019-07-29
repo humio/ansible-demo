@@ -22,6 +22,11 @@ resource "google_compute_instance" "humio01" {
     device_name = "${google_compute_disk.humio01-kafka-pd-ssd-a.name}"
   }
 
+  attached_disk {
+    source      = "${google_compute_disk.humio01-zookeeper-pd-ssd-a.self_link}"
+    device_name = "${google_compute_disk.humio01-zookeeper-pd-ssd-a.name}"
+  }
+
   scratch_disk {
     interface = "NVME"
   }
@@ -124,6 +129,12 @@ resource "google_compute_instance" "humio02" {
     device_name = "${google_compute_disk.humio02-kafka-pd-ssd-b.name}"
   }
 
+  attached_disk {
+    source      = "${google_compute_disk.humio02-zookeeper-pd-ssd-b.self_link}"
+    device_name = "${google_compute_disk.humio02-zookeeper-pd-ssd-b.name}"
+  }
+
+
   scratch_disk {
     interface = "NVME"
   }
@@ -222,6 +233,11 @@ resource "google_compute_instance" "humio03" {
   attached_disk {
     source      = "${google_compute_disk.humio03-kafka-pd-ssd-c.self_link}"
     device_name = "${google_compute_disk.humio03-kafka-pd-ssd-c.name}"
+  }
+
+  attached_disk {
+    source      = "${google_compute_disk.humio03-zookeeper-pd-ssd-c.self_link}"
+    device_name = "${google_compute_disk.humio03-zookeeper-pd-ssd-c.name}"
   }
 
   scratch_disk {

@@ -12,6 +12,14 @@ resource "google_compute_disk" "humio01-kafka-pd-ssd-a" {
   size  = "${var.kafka_disk_size}"
 }
 
+resource "google_compute_disk" "humio01-zookeeper-pd-ssd-a" {
+  name  = "humio01-zookeeper-pd-ssd-a"
+  type  = "pd-ssd"
+  zone  = "${var.region}-a"
+  size  = "${var.zookeeper_disk_size}"
+}
+
+
 resource "google_compute_disk" "humio02-pd-ssd-b" {
   name  = "humio02-pd-ssd-b"
   type  = "pd-ssd"
@@ -25,6 +33,12 @@ resource "google_compute_disk" "humio02-kafka-pd-ssd-b" {
   size  = "${var.kafka_disk_size}"
 }
 
+resource "google_compute_disk" "humio02-zookeeper-pd-ssd-b" {
+  name  = "humio02-zookeeper-pd-ssd-b"
+  type  = "pd-ssd"
+  zone  = "${var.region}-b"
+  size  = "${var.zookeeper_disk_size}"
+}
 resource "google_compute_disk" "humio03-pd-ssd-c" {
   name  = "humio03-pd-ssd-c"
   type  = "pd-ssd"
@@ -38,6 +52,12 @@ resource "google_compute_disk" "humio03-kafka-pd-ssd-c" {
   size  = "${var.kafka_disk_size}"
 }
 
+resource "google_compute_disk" "humio03-zookeeper-pd-ssd-c" {
+  name  = "humio03-zookeeper-pd-ssd-c"
+  type  = "pd-ssd"
+  zone  = "${var.region}-c"
+  size  = "${var.zookeeper_disk_size}"
+}
 resource "google_compute_disk" "humio04-pd-ssd-a" {
   name  = "humio04-pd-ssd-a"
   type  = "pd-ssd"

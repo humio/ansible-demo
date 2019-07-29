@@ -2,19 +2,21 @@ resource "google_compute_firewall" "local-network" {
   name    = "${google_compute_network.vpc_network.name}-local-network"
   network = "${google_compute_network.vpc_network.name}"
 
- allow {
-    protocol = "icmp"
-  }
+#  allow {
+#     protocol = "icmp"
+#   }
   allow {
     protocol = "tcp"
-    ports    = ["0-65535"]
+    ports    = ["2181","2888", "3888","8080","9092", "9200"]
   }
   allow {
     protocol = "udp"
-    ports    = ["0-65535"]
+    ports    = ["2888","3888"]
   }
 
-  source_ranges = ["${var.vpc_network_cidr}"]
+  target_tags   = ["humios", "kafkas", "zookeepers"]
+  source_tags   = ["humios", "kafkas", "zookeepers"]
+  # source_ranges = ["${var.vpc_network_cidr}"]
 }
 resource "google_compute_firewall" "allow_health_check" {
   name    = "${google_compute_network.vpc_network.name}-health-check"
@@ -22,7 +24,7 @@ resource "google_compute_firewall" "allow_health_check" {
 
   allow {
     protocol = "tcp"
-    ports    = ["8080", "9200"]
+    ports    = ["8081", "9200"]
   }
 
   target_tags   = ["humios", "kafkas"]
