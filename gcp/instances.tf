@@ -188,16 +188,16 @@ eof'
   sudo chmod +x /bootstrap.sh
 
   sudo bash -c 'cat << eof > /etc/systemd/system/bootstrap.service
-[unit]
-description=run ansible
-after=network.target
-[service]
-type=oneshot
-execstart=/bootstrap.sh
-remainafterexit=true
-standardoutput=journal
-[install]
-wantedby=multi-user.target
+[Unit]
+Description=Run Ansible
+After=network.target
+[Service]
+Type=oneshot
+ExecStart=/bootstrap.sh
+RemainAfterExit=true
+StandardOutput=journal
+[Install]
+WantedBy=multi-user.target
 eof'
   sudo systemctl daemon-reload
   sudo systemctl start bootstrap.service
@@ -293,16 +293,16 @@ eof'
   sudo chmod +x /bootstrap.sh
 
   sudo bash -c 'cat << eof > /etc/systemd/system/bootstrap.service
-[unit]
-description=run ansible
-after=network.target
-[service]
-type=oneshot
-execstart=/bootstrap.sh
-remainafterexit=true
-standardoutput=journal
-[install]
-wantedby=multi-user.target
+[Unit]
+Description=Run Ansible
+After=network.target
+[Service]
+Type=oneshot
+ExecStart=/bootstrap.sh
+RemainAfterExit=true
+StandardOutput=journal
+[Install]
+WantedBy=multi-user.target
 eof'
   sudo systemctl daemon-reload
   sudo systemctl start bootstrap.service
@@ -395,16 +395,16 @@ eof'
   sudo chmod +x /bootstrap.sh
 
   sudo bash -c 'cat << eof > /etc/systemd/system/bootstrap.service
-[unit]
-description=run ansible
-after=network.target
-[service]
-type=oneshot
-execstart=/bootstrap.sh
-remainafterexit=true
-standardoutput=journal
-[install]
-wantedby=multi-user.target
+[Unit]
+Description=Run Ansible
+After=network.target
+[Service]
+Type=oneshot
+ExecStart=/bootstrap.sh
+RemainAfterExit=true
+StandardOutput=journal
+[Install]
+WantedBy=multi-user.target
 eof'
   sudo systemctl daemon-reload
   sudo systemctl start bootstrap.service
@@ -496,16 +496,16 @@ eof'
   sudo chmod +x /bootstrap.sh
 
   sudo bash -c 'cat << eof > /etc/systemd/system/bootstrap.service
-[unit]
-description=run ansible
-after=network.target
-[service]
-type=oneshot
-execstart=/bootstrap.sh
-remainafterexit=true
-standardoutput=journal
-[install]
-wantedby=multi-user.target
+[Unit]
+Description=Run Ansible
+After=network.target
+[Service]
+Type=oneshot
+ExecStart=/bootstrap.sh
+RemainAfterExit=true
+StandardOutput=journal
+[Install]
+WantedBy=multi-user.target
 eof'
   sudo systemctl daemon-reload
   sudo systemctl start bootstrap.service
@@ -598,16 +598,16 @@ eof'
   sudo chmod +x /bootstrap.sh
 
   sudo bash -c 'cat << eof > /etc/systemd/system/bootstrap.service
-[unit]
-description=run ansible
-after=network.target
-[service]
-type=oneshot
-execstart=/bootstrap.sh
-remainafterexit=true
-standardoutput=journal
-[install]
-wantedby=multi-user.target
+[Unit]
+Description=Run Ansible
+After=network.target
+[Service]
+Type=oneshot
+ExecStart=/bootstrap.sh
+RemainAfterExit=true
+StandardOutput=journal
+[Install]
+WantedBy=multi-user.target
 eof'
   sudo systemctl daemon-reload
   sudo systemctl start bootstrap.service
@@ -699,16 +699,16 @@ eof'
   sudo chmod +x /bootstrap.sh
 
   sudo bash -c 'cat << eof > /etc/systemd/system/bootstrap.service
-[unit]
-description=run ansible
-after=network.target
-[service]
-type=oneshot
-execstart=/bootstrap.sh
-remainafterexit=true
-standardoutput=journal
-[install]
-wantedby=multi-user.target
+[Unit]
+Description=Run Ansible
+After=network.target
+[Service]
+Type=oneshot
+ExecStart=/bootstrap.sh
+RemainAfterExit=true
+StandardOutput=journal
+[Install]
+WantedBy=multi-user.target
 eof'
   sudo systemctl daemon-reload
   sudo systemctl start bootstrap.service
@@ -800,16 +800,16 @@ eof'
   sudo chmod +x /bootstrap.sh
 
   sudo bash -c 'cat << eof > /etc/systemd/system/bootstrap.service
-[unit]
-description=run ansible
-after=network.target
-[service]
-type=oneshot
-execstart=/bootstrap.sh
-remainafterexit=true
-standardoutput=journal
-[install]
-wantedby=multi-user.target
+[Unit]
+Description=Run Ansible
+After=network.target
+[Service]
+Type=oneshot
+ExecStart=/bootstrap.sh
+RemainAfterExit=true
+StandardOutput=journal
+[Install]
+WantedBy=multi-user.target
 eof'
   sudo systemctl daemon-reload
   sudo systemctl start bootstrap.service
@@ -901,16 +901,16 @@ eof'
   sudo chmod +x /bootstrap.sh
 
   sudo bash -c 'cat << eof > /etc/systemd/system/bootstrap.service
-[unit]
-description=run ansible
-after=network.target
-[service]
-type=oneshot
-execstart=/bootstrap.sh
-remainafterexit=true
-standardoutput=journal
-[install]
-wantedby=multi-user.target
+[Unit]
+Description=Run Ansible
+After=network.target
+[Service]
+Type=oneshot
+ExecStart=/bootstrap.sh
+RemainAfterExit=true
+StandardOutput=journal
+[Install]
+WantedBy=multi-user.target
 eof'
   sudo systemctl daemon-reload
   sudo systemctl start bootstrap.service
