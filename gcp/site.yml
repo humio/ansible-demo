@@ -10,6 +10,19 @@
       delegate_facts: True
       when: hostvars[item]['gce_private_ip'] is not defined
       with_items: "{{ groups['all'] }}"
+    - set_fact:
+        zookeeper_hosts: "
+          {%- set ips = [] %}
+          {%- for host in groups['tag_zookeepers'] %}
+          {{- ips.append(dict(id=loop.index, host=host, ip=hostvars[host]['gce_private_ip'])) }}
+          {%- endfor %}
+          {{- ips -}}"
+        kafka_hosts: "
+          {%- set ips = [] %}
+          {%- for host in groups['tag_kafkas'] %}
+          {{- ips.append(dict(id=loop.index, host=host, ip=hostvars[host]['gce_private_ip'])) }}
+          {%- endfor %}
+          {{- ips -}}"
   roles:
   - role: ansible-beats
     tags: monitoring
@@ -65,7 +78,7 @@
         number: 1
         flags: [ lvm ]
         label: gpt
-        state: present 
+        state: present
     - name: format sdb1
       filesystem:
         dev: /dev/sdb1
@@ -88,7 +101,7 @@
         number: 1
         flags: [ lvm ]
         label: gpt
-        state: present 
+        state: present
     - name: format sdc
       filesystem:
         dev: /dev/sdc1
@@ -110,7 +123,7 @@
         number: 1
         flags: [ lvm ]
         label: gpt
-        state: present 
+        state: present
     - name: format sdd
       filesystem:
         dev: /dev/sdd1
@@ -135,18 +148,6 @@
       zookeeper_url: "http://archive.apache.org/dist/zookeeper/zookeeper-{{ zookeeper_version }}/zookeeper-{{ zookeeper_version }}.tar.gz"
       data_dir: /var/lib/zookeeper
       log_dir: /var/log/zookeeper
-      zookeeper_hosts: "
-        {%- set ips = [] %}
-        {%- for host in groups['tag_zookeepers'] %}
-        {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['gce_private_ip'])) }}
-        {%- endfor %}
-        {{- ips -}}"
-      # zookeeper_hosts: "
-      #   {%- set ips = [] %}
-      #   {%- for host in groups['tag_zookeepers'] %}
-      #   {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['gce_private_ip'])) }}
-      #   {%- endfor %}
-      #   {{- ips -}}"
 
 - hosts: tag_kafkas
   serial: 1
@@ -154,12 +155,6 @@
   roles:
     - role: humio.java
     - role: humio.kafka
-      zookeeper_hosts: "
-        {%- set ips = [] %}
-        {%- for host in groups['tag_zookeepers'] %}
-        {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['gce_private_ip'])) }}
-        {%- endfor %}
-        {{- ips -}}"
       kafka_broker_id: "{{ ansible_local['cluster_index'] }}"
       kafka_listeners:
         - host: "{{ gce_private_ip }}"
@@ -201,18 +196,6 @@
     - role: humio.java
     - role: humio.server
       tags: humio
-      zookeeper_hosts: "
-        {%- set ips = [] %}
-        {%- for host in groups['tag_zookeepers'] %}
-        {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['gce_private_ip'])) }}
-        {%- endfor %}
-        {{- ips -}}"
-      kafka_hosts: "
-       {%- set ips = [] %}
-       {%- for host in groups['tag_kafkas'] %}
-       {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['gce_private_ip'])) }}
-       {%- endfor %}
-       {{- ips -}}"
       humio_host_id: "{{ ansible_local['cluster_index'] }}"
       humio_config:
         "all": |
@@ -235,12 +218,19 @@
         number: 1
         flags: [ lvm ]
         label: gpt
-        state: present 
+        state: present
     - name: format nvme0n1
       when: nvme_checked.stdout == 0
       filesystem:
         dev: /dev/nvme0n1
         fstype: xfs
+    - name: Cache ownership
+      file:
+        path: /var/humio/cache
+        state: directory
+        owner: humio
+        group: humio
+        mode: '0755'
     - name: mount nvme0n1
       when: nvme_checked.stdout == 0
       mount:
@@ -248,12 +238,6 @@
         src: /dev/nvme0n1
         path: /var/humio/cache
         state: mounted
-    - name: Cache ownership
-      file:
-        path: /var/humio/cache
-        owner: humio
-        group: humio
-        mode: '0755'
 # - hosts: localhost
 #   connection: local
 #   tasks:
