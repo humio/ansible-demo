@@ -14,3 +14,10 @@ resource "google_project_iam_member" "default" {
   member  = "user:jane@example.com"
   member  = "serviceAccount:${google_service_account.default.email}"
 }
+
+resource "google_project_iam_member" "bucket" {
+  project = "${var.gcp_project_id}"
+  role    = "roles/storage.objectViewer"
+  member  = "user:jane@example.com"
+  member  = "serviceAccount:${google_service_account.default.email}"
+}

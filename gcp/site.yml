@@ -135,8 +135,6 @@
         path: /var/lib/zookeeper
         state: mounted
 
-
-
 - hosts: tag_zookeepers
   tags: zookeeper
   become: true
@@ -160,9 +158,25 @@
         - host: "{{ gce_private_ip }}"
       kafka_log_dirs: "/var/kafka/data"
 
+- hosts: all
+  become: true
+  serial: 1
+  tasks:
+    - name: Fetch saml settings
+      command: /etc/ansible/fetch-saml-settings.sh
+      delegate_to: localhost
+      register: result
+
+    - name: Show results
+      debug:
+        var: result.stdout
+      delegate_to: localhost
+
 - hosts: tag_humios
   serial: 1
   become: true
+  vars:
+     saml_contents: "{{ lookup('file', '/etc/ansible/saml/saml-config.txt') }}"
   roles:
     - role: "ansible-beats"
       beat: "filebeat"
@@ -201,6 +215,7 @@
         "all": |
           CACHE_STORAGE_DIRECTORY=/var/humio/cache
           CACHE_STORAGE_PERCENTAGE=90
+          {% if saml_contents %}{{ saml_contents }}{% endif %}
         "0": |
           EXTERNAL_URL=http://{{ gce_private_ip }}:8080
 - hosts:

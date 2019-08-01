@@ -42,9 +42,10 @@ resource "google_compute_instance" "humio01" {
   sudo echo 1 > /etc/ansible/facts.d/cluster_index.fact
 
   sudo echo ${google_service_account_key.default.private_key} | base64 -d | jq -r '.private_key' > /var/lib/service-account.key
-  sudo chown ubuntu:ubuntu /var/lib/service-account.key
+  sudo echo ${google_service_account_key.default.private_key} | base64 -d | jq -r '.' > /var/lib/service-account.json
+  sudo chown ubuntu:ubuntu /var/lib/service-account.*
 
-  sudo chmod 600 /var/lib/service-account.key
+  sudo chmod 600 /var/lib/service-account.*
   sudo mkdir /home/ubuntu/.ssh; sudo touch /home/ubuntu/.ssh
   sudo chown -r ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
 
@@ -65,13 +66,29 @@ cache_path = ~/.ansible/tmp
 cache_max_age = 300
 eof'
 
+  sudo bash -c 'cat << eof > /etc/ansible/fetch-saml-settings.sh
+#!/bin/bash
+
+declare -r gsutil=/root/google-cloud-sdk/bin/gsutil
+declare -r gcloud=/root/google-cloud-sdk/bin/gcloud
+
+\$gcloud auth activate-service-account ${google_service_account.default.email} --key-file /service-account.json
+\$gsutil cp gs://humio-saml/saml-config.txt /etc/ansible/saml/saml-config.txt
+eof'
+  sudo chmod +x /etc/ansible/fetch-saml-settings.sh
+
   sudo bash -c 'cat << eof > /bootstrap.sh
 #!/bin/sh
 
-sudo docker run --rm \
+sudo docker pull humio/ansible
+
+sudo docker run --rm --net=host \
   -v /home/ubuntu/.ssh/authorized_keys:/tmp/authorized_keys \
   -v /var/lib/service-account.key:/service-account.pem \
+  -v /var/lib/service-account.json:/service-account.json \
   -v /var/lib/gce.ini:/etc/ansible/gce.ini \
+  -v /etc/ansible/fetch-saml-settings.sh:/etc/ansible/fetch-saml-settings.sh \
+  -v /etc/ansible/saml:/etc/ansible/saml \
   humio/ansible
 eof'
 
@@ -89,6 +106,7 @@ StandardOutput=journal
 [Install]
 WantedBy=multi-user.target
 eof'
+
   sudo systemctl daemon-reload
   sudo systemctl start bootstrap.service
   script
