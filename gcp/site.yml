@@ -61,11 +61,13 @@
       - "8081"
       - "9092"
       - "9200"
+      - "9201"
     firewall_allowed_udp_ports:
       - "2888"
       - "3888"
     firewall_forwarded_tcp_ports:
       - { src: "8081", dest: "8080" }
+      - { src: "9201", dest: "9200" }
 - hosts:
     - tag_kafkas
     - tag_humios
@@ -166,6 +168,7 @@
       command: /etc/ansible/fetch-saml-settings.sh
       delegate_to: localhost
       register: result
+      ignore_errors: yes
 
     - name: Show results
       debug:
