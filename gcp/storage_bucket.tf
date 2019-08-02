@@ -6,7 +6,7 @@ resource "google_storage_bucket" "humio_saml" {
   force_destroy = true
 
   encryption = {
-    default_kms_key_name = "${google_kms_crypto_key.humio.self_link}"
+    default_kms_key_name = "${data.google_kms_crypto_key.humio.self_link}"
   }
 
   versioning {
