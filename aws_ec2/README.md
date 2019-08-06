@@ -62,7 +62,7 @@ ansible-playbook site.yml
 Once the cluster is up and running, the Humio web interface should be on the ui load balancer. Bare in mind it can take up to 2 minutes before the nodes are deemed healthy by the Target Group
 
 ```bash
-open $(terraform output "Humio ui")
+open $(terraform output "humio_ui")
 ```
 
 ## Selecting Operating System
