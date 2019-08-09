@@ -314,14 +314,6 @@ resource "google_compute_instance_from_template" "humio09" {
     device_name = "${google_compute_disk.humio09-pd-ssd-c.name}"
   }
 
-<<<<<<< HEAD
-=======
-  attached_disk {
-    source      = "${google_compute_disk.humio09-kafka-pd-ssd-c.self_link}"
-    device_name = "${google_compute_disk.humio09-kafka-pd-ssd-c.name}"
-  }
-
->>>>>>> 6aa424c5708edc37b86aa0d114ce2096a1888948
   scratch_disk {
     interface = "NVME"
   }
