@@ -552,7 +552,8 @@ resource "google_compute_instance" "humio06" {
 
 
   tags = [
-    "humios"
+    "humios",
+    "kafkas"
   ]
     metadata_startup_script = <<script
   sudo apt-get update
@@ -641,11 +642,6 @@ resource "google_compute_instance" "humio07" {
   attached_disk {
     source      = "${google_compute_disk.humio07-pd-ssd-a.self_link}"
     device_name = "${google_compute_disk.humio07-pd-ssd-a.name}"
-  }
-
-  attached_disk {
-    source      = "${google_compute_disk.humio07-kafka-pd-ssd-a.self_link}"
-    device_name = "${google_compute_disk.humio07-kafka-pd-ssd-a.name}"
   }
 
   scratch_disk {
@@ -745,11 +741,6 @@ resource "google_compute_instance" "humio08" {
     device_name = "${google_compute_disk.humio08-pd-ssd-b.name}"
   }
 
-  attached_disk {
-    source      = "${google_compute_disk.humio08-kafka-pd-ssd-b.self_link}"
-    device_name = "${google_compute_disk.humio08-kafka-pd-ssd-b.name}"
-  }
-
   scratch_disk {
     interface = "NVME"
   }
@@ -844,12 +835,6 @@ resource "google_compute_instance" "humio09" {
     source      = "${google_compute_disk.humio09-pd-ssd-c.self_link}"
     device_name = "${google_compute_disk.humio09-pd-ssd-c.name}"
   }
-
-  attached_disk {
-    source      = "${google_compute_disk.humio09-kafka-pd-ssd-c.self_link}"
-    device_name = "${google_compute_disk.humio09-kafka-pd-ssd-c.name}"
-  }
-
 
   scratch_disk {
     interface = "NVME"

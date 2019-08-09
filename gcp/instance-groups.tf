@@ -9,14 +9,20 @@ resource "google_compute_instance_group" "humionodes_a" {
               ]
 
   named_port {
+    name = "https"
+    port = "443"
+  }
+
+  named_port {
     name = "http"
     port = "8081"
   }
 
   named_port {
-    name = "https"
-    port = "443"
+    name = "es"
+    port = "9092"
   }
+
 
   zone = "${var.region}-a"
 }
@@ -31,14 +37,20 @@ resource "google_compute_instance_group" "humionodes_b" {
                 "${google_compute_instance.humio08.self_link}"
               ]
 
+
+  named_port {
+    name = "https"
+    port = "443"
+  }
+
   named_port {
     name = "http"
     port = "8081"
   }
 
   named_port {
-    name = "https"
-    port = "443"
+    name = "es"
+    port = "9092"
   }
 
   zone = "${var.region}-b"
@@ -53,14 +65,20 @@ resource "google_compute_instance_group" "humionodes_c" {
                 "${google_compute_instance.humio09.self_link}"
               ]
 
+
+  named_port {
+    name = "https"
+    port = "443"
+  }
+
   named_port {
     name = "http"
     port = "8081"
   }
 
   named_port {
-    name = "https"
-    port = "443"
+    name = "es"
+    port = "9092"
   }
 
   zone = "${var.region}-c"
