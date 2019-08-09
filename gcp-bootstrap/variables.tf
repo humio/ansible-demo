@@ -4,3 +4,8 @@ variable "gcp_project_id" {
 
 # creds.json file
 variable "credentials_file" {}
+
+variable "region" {
+  type = "string"
+  default = "us-central1"
+}

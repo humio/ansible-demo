@@ -1,12 +1,12 @@
 variable "gcp_credentials" {
   type = "string"
   default =  "XXXX"
-  
+
 }
 variable "gcp_project_id" {
   type = "string"
   default = "XXXXX"
-  
+
 }
 variable "external_access_ips" {
   type = "list"
@@ -22,31 +22,31 @@ variable "access_pub_key" {
 variable "https_private_key" {
   type = "string"
   default = "/path/to/file"
-  
+
 }
 variable "https_certificate" {
   type = "string"
   default = "/path/to/file"
-  
+
 }
 variable "https_hostname" {
   type = "string"
   default = "xxx.xxxx.com"
-  
+
 }
 variable "es_private_key" {
   type = "string"
   default = "/path/to/file"
-  
+
 }
 variable "es_certificate" {
   type = "string"
   default = "/path/to/file"
-  
+
 }
 
 variable "es_hostname" {
   type = "string"
   default = "xx.xxx.com"
-  
+
 }

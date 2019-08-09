@@ -10,6 +10,19 @@
       delegate_facts: True
       when: hostvars[item]['gce_private_ip'] is not defined
       with_items: "{{ groups['all'] }}"
+    - set_fact:
+        zookeeper_hosts: "
+          {%- set ips = [] %}
+          {%- for host in groups['tag_zookeepers'] %}
+          {{- ips.append(dict(id=loop.index, host=host, ip=hostvars[host]['gce_private_ip'])) }}
+          {%- endfor %}
+          {{- ips -}}"
+        kafka_hosts: "
+          {%- set ips = [] %}
+          {%- for host in groups['tag_kafkas'] %}
+          {{- ips.append(dict(id=loop.index, host=host, ip=hostvars[host]['gce_private_ip'])) }}
+          {%- endfor %}
+          {{- ips -}}"
   roles:
   - role: ansible-beats
     tags: monitoring
@@ -48,11 +61,13 @@
       - "8081"
       - "9092"
       - "9200"
+      - "9201"
     firewall_allowed_udp_ports:
       - "2888"
       - "3888"
     firewall_forwarded_tcp_ports:
       - { src: "8081", dest: "8080" }
+      - { src: "9201", dest: "9200" }
 - hosts:
     - tag_kafkas
     - tag_humios
@@ -65,7 +80,7 @@
         number: 1
         flags: [ lvm ]
         label: gpt
-        state: present 
+        state: present
     - name: format sdb1
       filesystem:
         dev: /dev/sdb1
@@ -88,7 +103,7 @@
         number: 1
         flags: [ lvm ]
         label: gpt
-        state: present 
+        state: present
     - name: format sdc
       filesystem:
         dev: /dev/sdc1
@@ -110,7 +125,7 @@
         number: 1
         flags: [ lvm ]
         label: gpt
-        state: present 
+        state: present
     - name: format sdd
       filesystem:
         dev: /dev/sdd1
@@ -121,8 +136,6 @@
         src: /dev/sdd1
         path: /var/lib/zookeeper
         state: mounted
-
-
 
 - hosts: tag_zookeepers
   tags: zookeeper
@@ -135,18 +148,6 @@
       zookeeper_url: "http://archive.apache.org/dist/zookeeper/zookeeper-{{ zookeeper_version }}/zookeeper-{{ zookeeper_version }}.tar.gz"
       data_dir: /var/lib/zookeeper
       log_dir: /var/log/zookeeper
-      zookeeper_hosts: "
-        {%- set ips = [] %}
-        {%- for host in groups['tag_zookeepers'] %}
-        {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['gce_private_ip'])) }}
-        {%- endfor %}
-        {{- ips -}}"
-      # zookeeper_hosts: "
-      #   {%- set ips = [] %}
-      #   {%- for host in groups['tag_zookeepers'] %}
-      #   {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['gce_private_ip'])) }}
-      #   {%- endfor %}
-      #   {{- ips -}}"
 
 - hosts: tag_kafkas
   serial: 1
@@ -154,20 +155,31 @@
   roles:
     - role: humio.java
     - role: humio.kafka
-      zookeeper_hosts: "
-        {%- set ips = [] %}
-        {%- for host in groups['tag_zookeepers'] %}
-        {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['gce_private_ip'])) }}
-        {%- endfor %}
-        {{- ips -}}"
       kafka_broker_id: "{{ ansible_local['cluster_index'] }}"
       kafka_listeners:
         - host: "{{ gce_private_ip }}"
       kafka_log_dirs: "/var/kafka/data"
 
+- hosts: all
+  become: true
+  serial: 1
+  tasks:
+    - name: Fetch saml settings
+      command: /etc/ansible/fetch-saml-settings.sh
+      delegate_to: localhost
+      register: result
+      ignore_errors: yes
+
+    - name: Show results
+      debug:
+        var: result.stdout
+      delegate_to: localhost
+
 - hosts: tag_humios
   serial: 1
   become: true
+  vars:
+     saml_contents: "{{ lookup('file', '/etc/ansible/saml/saml-config.txt') }}"
   roles:
     - role: "ansible-beats"
       beat: "filebeat"
@@ -201,23 +213,12 @@
     - role: humio.java
     - role: humio.server
       tags: humio
-      zookeeper_hosts: "
-        {%- set ips = [] %}
-        {%- for host in groups['tag_zookeepers'] %}
-        {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['gce_private_ip'])) }}
-        {%- endfor %}
-        {{- ips -}}"
-      kafka_hosts: "
-       {%- set ips = [] %}
-       {%- for host in groups['tag_kafkas'] %}
-       {{- ips.append(dict(id=hostvars[host]['ansible_local']['cluster_index'], host=host, ip=hostvars[host]['gce_private_ip'])) }}
-       {%- endfor %}
-       {{- ips -}}"
       humio_host_id: "{{ ansible_local['cluster_index'] }}"
       humio_config:
         "all": |
           CACHE_STORAGE_DIRECTORY=/var/humio/cache
           CACHE_STORAGE_PERCENTAGE=90
+          {% if saml_contents %}{{ saml_contents }}{% endif %}
         "0": |
           EXTERNAL_URL=http://{{ gce_private_ip }}:8080
 - hosts:
@@ -235,12 +236,19 @@
         number: 1
         flags: [ lvm ]
         label: gpt
-        state: present 
+        state: present
     - name: format nvme0n1
       when: nvme_checked.stdout == 0
       filesystem:
         dev: /dev/nvme0n1
         fstype: xfs
+    - name: Cache ownership
+      file:
+        path: /var/humio/cache
+        state: directory
+        owner: humio
+        group: humio
+        mode: '0755'
     - name: mount nvme0n1
       when: nvme_checked.stdout == 0
       mount:
@@ -248,12 +256,6 @@
         src: /dev/nvme0n1
         path: /var/humio/cache
         state: mounted
-    - name: Cache ownership
-      file:
-        path: /var/humio/cache
-        owner: humio
-        group: humio
-        mode: '0755'
 # - hosts: localhost
 #   connection: local
 #   tasks:
