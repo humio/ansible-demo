@@ -78,7 +78,7 @@ ansible-playbook -u ec2-user site.yml
 
 ### CentOS Linux
 
-Bare in mind that for this particular AMI, you'll need to Accept Terms and Conditions
+Bear in mind that for this particular AMI, you'll need to Accept Terms and Conditions
 
 ```bash
 export TF_VAR_aws_ami_filter="CentOS Linux 7 x86_64 HVM EBS ENA 1805_01*"
