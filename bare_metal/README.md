@@ -5,7 +5,7 @@
 Before you begin, make sure your new bare metal Humio host machines
 meet the following criteria:
 
-* SSH public key added to the `authorized_hosts` file for the user
+* SSH public key added to the `authorized_keys` file for the user
   you're using to run ansible with (this is `root` by default) on all
   Humio host machines.
 * The `python3` package should be installed on all Humio host machines.
