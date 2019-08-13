@@ -1,6 +1,6 @@
 resource "google_storage_bucket" "humio_saml" {
-  name    = "humio-saml"
-  project = "${var.gcp_project_id}"
+  name     = "${var.gcp_project_id}-saml"
+  project  = "${var.gcp_project_id}"
   location = "${var.region}"
 
   force_destroy = true
