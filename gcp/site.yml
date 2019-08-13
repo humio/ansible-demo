@@ -230,7 +230,7 @@
       shell: df | grep "nvme0n1" | wc -l
       register: nvme_checked
     - name: parition nvme0n1
-      when: nvme_checked.stdout == 0
+      when: nvme_checked.stdout == "0"
       parted:
         device: /dev/nvme0n1
         number: 1
@@ -238,7 +238,7 @@
         label: gpt
         state: present
     - name: format nvme0n1
-      when: nvme_checked.stdout == 0
+      when: nvme_checked.stdout == "0"
       filesystem:
         dev: /dev/nvme0n1
         fstype: xfs
@@ -250,7 +250,7 @@
         group: humio
         mode: '0755'
     - name: mount nvme0n1
-      when: nvme_checked.stdout == 0
+      when: nvme_checked.stdout == "0"
       mount:
         fstype: xfs
         src: /dev/nvme0n1
