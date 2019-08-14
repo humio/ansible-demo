@@ -17,17 +17,17 @@ resource "google_compute_instance_template" "humio" {
      }
   }
 
+  service_account {
+    scopes = ["userinfo-email", "compute-ro", "storage-ro"]
+    email  = "${google_service_account.default.email}"
+  }
+
   metadata_startup_script = <<script
   sudo apt-get update
   sudo apt-get install -yq build-essential python jq docker.io
   sudo mkdir -p /etc/ansible/facts.d/
   sudo hostname | tr -dc '0-9' | sed -e 's/^0*//g' > /etc/ansible/facts.d/cluster_index.fact
 
-  sudo echo ${google_service_account_key.default.private_key} | base64 -d | jq -r '.private_key' > /var/lib/service-account.key
-  sudo echo ${google_service_account_key.default.private_key} | base64 -d | jq -r '.' > /var/lib/service-account.json
-  sudo chown ubuntu:ubuntu /var/lib/service-account.*
-
-  sudo chmod 600 /var/lib/service-account.*
   sudo mkdir /home/ubuntu/.ssh; sudo touch /home/ubuntu/.ssh
   sudo chown -r ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
 
@@ -35,8 +35,6 @@ resource "google_compute_instance_template" "humio" {
 [gce]
 libcloud_secrets =
 
-gce_service_account_email_address = ${google_service_account.default.email}
-gce_service_account_pem_file_path = /service-account.pem
 gce_project_id = ${var.gcp_project_id}
 gce_zone = ${var.region}
 
@@ -54,7 +52,6 @@ eof'
 declare -r gsutil=/root/google-cloud-sdk/bin/gsutil
 declare -r gcloud=/root/google-cloud-sdk/bin/gcloud
 
-\$gcloud auth activate-service-account ${google_service_account.default.email} --key-file /service-account.json
 \$gsutil cp gs://humio-saml/saml-config.txt /etc/ansible/saml/saml-config.txt
 eof'
   sudo chmod +x /etc/ansible/fetch-saml-settings.sh
@@ -68,8 +65,6 @@ sudo docker pull humio/ansible
 
 sudo docker run --rm --net=host \
   -v /home/ubuntu/.ssh/authorized_keys:/tmp/authorized_keys \
-  -v /var/lib/service-account.key:/service-account.pem \
-  -v /var/lib/service-account.json:/service-account.json \
   -v /var/lib/gce.ini:/etc/ansible/gce.ini \
   -v /etc/ansible/fetch-saml-settings.sh:/etc/ansible/fetch-saml-settings.sh \
   -v /etc/ansible/saml:/etc/ansible/saml \
