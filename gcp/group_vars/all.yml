@@ -6,6 +6,17 @@ zookeeper_id: 1
 
 kafka_log_dirs: "/var/humio/kafka/data"
 
+humio_java_opts_Xmx: 84G
+humio_java_opts:
+  - "-server"
+  - "-XX:+UseParallelOldGC"
+  - "-Xms{{ humio_java_opts_Xms }}"
+  - "-Xmx{{ humio_java_opts_Xmx }}"
+  - "-Xss{{ humio_java_opts_Xss }}"
+  - "-Xlog:gc*,gc+jni=debug:file=${HUMIO_DEBUGLOG_DIR}/gc_humio.log:time,tags:filecount=5,filesize=102400"
+  - "-Dhumio.auditlog.dir=${HUMIO_AUDITLOG_DIR}"
+  - "-Dhumio.debuglog.dir=${HUMIO_DEBUGLOG_DIR}"
+
 output_conf:
   "elasticsearch":
     "hosts": ["{{ lookup('env', 'HUMIO_PARENT_URL') }}"]
@@ -22,4 +33,3 @@ humio_disks:
     disk: "/dev/md/secondary"
     destination: "/var/humio/secondary"
     type: "xfs"
-
