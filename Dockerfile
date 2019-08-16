@@ -8,7 +8,8 @@ RUN CLOUDSDK_PYTHON=/usr/local/bin/python curl https://sdk.cloud.google.com | ba
 
 RUN mkdir -p /etc/ansible
 
-COPY ./gcp/ansible.cfg ./gcp/entrypoint.sh gcp/gce.py gcp/group_vars gcp/requirements.yml /etc/ansible/
+COPY ./gcp/ansible.cfg ./gcp/entrypoint.sh gcp/gce.py gcp/requirements.yml /etc/ansible/
+COPY ./gcp/group_vars /etc/ansible/group_vars
 
 RUN chmod 755 /etc/ansible/gce.py
 RUN rm /usr/bin/python && ln -s /usr/bin/python3.7 /usr/bin/python
