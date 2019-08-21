@@ -1,8 +1,4 @@
 ---
-- src: https://github.com/elastic/ansible-beats
-
-- src: entercloudsuite.haproxy
-
 - src: AnsibleShipyard.ansible-zookeeper
   version: 0.23.0
 
