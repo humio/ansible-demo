@@ -14,7 +14,7 @@ zookeeper_url: "http://archive.apache.org/dist/zookeeper/zookeeper-{{ zookeeper_
 # the version of Humio to use. a list of versions with
 # their changes can be found in the changelog:
 # https://docs.humio.com/release-notes/
-humio_version: 1.5.16
+humio_version: 1.5.23
 
 # the name of the network interface Humio will be listening
 # on as displayed in `ifconfig` output
