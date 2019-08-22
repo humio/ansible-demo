@@ -3,6 +3,13 @@
 #
 # AnsibleShipyard.ansible-zookeeper variables
 #
+# Currently, only versions in the 3.4.x series are supported.
+# 3.5.x versions may work, but there is a known issue with
+# the Ansible run wherein Zookeeper will bind to port 8080
+# which prevents Humio from starting. If you have to use a
+# newer version of Zookeeper before this has been updated
+# for that, then make sure you change that port by setting
+# `admin.serverPort` in the zoo.cfg.
 zookeeper_version: 3.4.14
 zookeeper_url: "http://archive.apache.org/dist/zookeeper/zookeeper-{{ zookeeper_version }}/zookeeper-{{ zookeeper_version }}.tar.gz"
 
