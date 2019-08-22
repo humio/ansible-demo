@@ -13,7 +13,7 @@ resource "google_storage_bucket" "humio_saml" {
     enabled = false
   }
 
-  bucket_policy_only = true
+  # bucket_policy_only = true
 }
 
 resource "google_storage_bucket_iam_binding" "binding" {

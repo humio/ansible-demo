@@ -67,10 +67,10 @@
       - "3888"
     firewall_forwarded_tcp_ports:
       - { src: "8081", dest: "8080" }
-      - { src: "9201", dest: "9200" }
 - hosts:
     - tag_kafkas
     - tag_humios
+    - tag_humioingest
   tags: disk
   become: true
   tasks:

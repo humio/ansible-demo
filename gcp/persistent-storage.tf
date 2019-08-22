@@ -111,8 +111,9 @@ resource "google_compute_disk" "humio08-pd-ssd-b" {
 }
 
 resource "google_compute_disk" "humio09-pd-ssd-c" {
-  name  = "humio09-pd-ssd-b"
+  name  = "humio09-pd-ssd-c"
   type  = "pd-ssd"
   zone  = "${var.region}-c"
   size  = "${var.humio_disk_size}"
 }
+

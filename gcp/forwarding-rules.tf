@@ -9,13 +9,6 @@ resource "google_compute_global_forwarding_rule" "https" {
   port_range = "443"
 }
 
-resource "google_compute_global_forwarding_rule" "es" {
-  name       = "humio-global-forward-es"
-  target     = "${google_compute_target_tcp_proxy.es.self_link}"
-  ip_address = "${google_compute_global_address.default.address}"
-  port_range = "9200"
-}
-
 resource "google_compute_http_health_check" "default" {
   name               = "default"
   request_path       = "/"
@@ -28,11 +21,6 @@ resource "google_compute_target_https_proxy" "default" {
   name             = "humio-https-proxy"
   url_map          = "${google_compute_url_map.default.self_link}"
   ssl_certificates = ["${google_compute_ssl_certificate.default.self_link}"]
-}
-
-resource "google_compute_target_tcp_proxy" "es" {
-  name            = "humio-es-proxy"
-  backend_service = "${google_compute_backend_service.humio_es.self_link}"
 }
 
 resource "google_compute_ssl_certificate" "default" {
@@ -82,34 +70,4 @@ resource "google_compute_backend_service" "humio" {
   }
 
   health_checks = ["${google_compute_http_health_check.default.self_link}"]
-}
-
-resource "google_compute_health_check" "es" {
-  name               = "es-check"
-  check_interval_sec = 1
-  timeout_sec        = 1
-  tcp_health_check {
-    port = "9201"
-  }
-}
-
-resource "google_compute_backend_service" "humio_es" {
-  name        = "humio-backend-service-es"
-  port_name   = "es"
-  protocol    = "TCP"
-  timeout_sec = 10
-
-  backend {
-    group = "${google_compute_instance_group.humionodes_a.self_link}"
-  }
-
-  backend {
-    group = "${google_compute_instance_group.humionodes_b.self_link}"
-  }
-
-  backend {
-    group = "${google_compute_instance_group.humionodes_c.self_link}"
-  }
-
-  health_checks = ["${google_compute_health_check.es.self_link}"]
 }
