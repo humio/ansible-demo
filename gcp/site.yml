@@ -256,6 +256,42 @@
         src: /dev/nvme0n1
         path: /var/humio/cache
         state: mounted
+- hosts: tag_humioingest
+  serial: 1
+  become: true
+  vars:
+     saml_contents: "{{ lookup('file', '/etc/ansible/saml/saml-config.txt') }}"
+  roles:
+    - role: "ansible-beats"
+      beat: "filebeat"
+      beat_conf:
+        "filebeat":
+          "inputs":
+            - paths:
+              - /var/log/syslog
+              - /var/log/auth.log
+              fields:
+                "@type": syslog-utc
+                "@tags": ["@host", "@type"]
+            - paths:
+              - /var/log/humio/*/humio-debug.log
+              fields:
+                "@type": humio
+                "@tags": ["@host", "@type"]
+              multiline:
+                pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}'
+                negate: true
+                match: after
+    - role: humio.java
+    - role: humio.server
+      tags: humio
+      humio_host_id: "{{ ansible_local['cluster_index'] }}"
+      humio_config:
+        "all": |
+          NODE_ROLES=httponly
+          {% if saml_contents %}{{ saml_contents }}{% endif %}
+        "0": |
+          EXTERNAL_URL=http://{{ gce_private_ip }}:8080
 # - hosts: localhost
 #   connection: local
 #   tasks:
