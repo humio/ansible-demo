@@ -38,6 +38,10 @@ variable "humio_disk_size" {
   type = "string"
   default = "500"
 }
+variable "humio_ingest_disk_size" {
+  type = "string"
+  default = "100"
+}
 
 variable "kafka_disk_size" {
   type = "string"
