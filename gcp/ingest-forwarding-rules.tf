@@ -3,8 +3,11 @@
 resource "google_compute_forwarding_rule" "es" {
   name       = "humio-es-internal"
   backend_service = "${google_compute_region_backend_service.humio_es.self_link}"
+  network               = "${google_compute_network.default.name}"
   load_balancing_scheme = "INTERNAL"
-  port_range = "9200"
+  all_ports             = true
+  network = "${google_compute_network.vpc_network.name}"
+
 }
 resource "google_compute_health_check" "es" {
   name               = "es-check"

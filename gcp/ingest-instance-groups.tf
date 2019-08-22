@@ -10,6 +10,8 @@ resource "google_compute_instance_group" "humioingest_a" {
     name = "es"
     port = "9200"
   }
+
+  zone = "${var.region}-a"
 }
 
 resource "google_compute_instance_group" "humioingest_b" {

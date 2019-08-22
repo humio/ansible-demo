@@ -109,7 +109,7 @@ resource "google_compute_instance_from_template" "humio10" {
 resource "google_compute_instance_from_template" "humio11" {
   name                     = "humio11"
   zone                     = "${format("%s-b", var.region)}"
-  source_instance_template = "${google_compute_instance_template.humio.self_link}"
+  source_instance_template = "${google_compute_instance_template.humioingest.self_link}"
 
   attached_disk {
     source      = "${google_compute_disk.humio11-pd-ssd-b.self_link}"
@@ -125,7 +125,7 @@ resource "google_compute_instance_from_template" "humio11" {
 resource "google_compute_instance_from_template" "humio12" {
   name                     = "humio12"
   zone                     = "${format("%s-c", var.region)}"
-  source_instance_template = "${google_compute_instance_template.humio.self_link}"
+  source_instance_template = "${google_compute_instance_template.humioingest.self_link}"
 
   attached_disk {
     source      = "${google_compute_disk.humio12-pd-ssd-c.self_link}"
