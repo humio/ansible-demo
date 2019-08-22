@@ -11,9 +11,9 @@ locals {
   request_routing_rule_name      = "${azurerm_virtual_network.main.name}-rqrt"
 
   public_ports = {
-    ui             = 80
-    ingest-api     = 8080
-    ingest-elastic = 9200
+    ui     = 80
+    ingest = 8080
+    es     = 9200
   }
 }
 
@@ -178,6 +178,7 @@ resource "azurerm_virtual_machine" "main" {
     sku       = "18.04-LTS"
     version   = "latest"
   }
+
   storage_os_disk {
     name              = format("humio%02d-osDisk", count.index + 1)
     caching           = "ReadWrite"

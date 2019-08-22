@@ -52,7 +52,7 @@ First, make sure you have the required Ansible Galaxy roles installed and the Az
 
 ```bash
 ansible-galaxy install --role-file=requirements.yml
-pip install 'ansible[azure] azure-cli' --user
+pip install "ansible[azure]" azure-cli --user
 ```
 
 Finally, the cluster can be provisioned with the `site.yml` playbook
