@@ -67,6 +67,7 @@
       - "3888"
     firewall_forwarded_tcp_ports:
       - { src: "8081", dest: "8080" }
+      - { src: "9201", dest: "9200" }
 - hosts:
     - tag_kafkas
     - tag_humios
@@ -218,6 +219,7 @@
         "all": |
           CACHE_STORAGE_DIRECTORY=/var/humio/cache
           CACHE_STORAGE_PERCENTAGE=90
+          COMPRESSION_TYPE=high
           {% if saml_contents %}{{ saml_contents }}{% endif %}
         "0": |
           EXTERNAL_URL=http://{{ gce_private_ip }}:8080
