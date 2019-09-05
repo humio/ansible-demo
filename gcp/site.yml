@@ -244,19 +244,13 @@
       filesystem:
         dev: /dev/nvme0n1
         fstype: xfs
-    - name: Cache ownership
-      file:
-        path: /var/humio/cache
-        state: directory
-        owner: humio
-        group: humio
-        mode: '0755'
     - name: mount nvme0n1
       when: nvme_checked.stdout == "0"
       mount:
         fstype: xfs
         src: /dev/nvme0n1
         path: /var/humio/cache
+        opts: uid=humio,gid=humio
         state: mounted
 - hosts: tag_humioingest
   serial: 1
