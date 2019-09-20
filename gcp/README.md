@@ -24,6 +24,6 @@ value to `/etc/ansible/saml/saml-cert.pem`.
 4) Upload the `saml-cert.pem` file to the same bucket.
 5) Restart the humio nodes:
 ```
-for i in {1..9}; do terraform taint google_compute_instance.humio0${i}; done
+for i in {01..12}; do terraform-11 taint google_compute_instance_from_template.humio${i}; done
 terraform apply
 ```
