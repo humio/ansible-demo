@@ -1,11 +1,7 @@
 ---
-- src: elastic.beats
-
 - src: AnsibleShipyard.ansible-zookeeper
   version: 0.23.0
 
 - src: humio.kafka
-  version: 0.1.1
 
 - src: humio.server
-  version: 0.1.7

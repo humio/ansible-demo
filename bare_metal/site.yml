@@ -1,0 +1,114 @@
+---
+############################################
+#
+# Gather facts from all machines in the cluster
+#
+# This is required even if you're just running against one specific
+# machine in the cluster because the configuration files need host
+# information for all nodes in the cluster when writing the config
+# files for various services Humio uses.
+#
+- hosts: all
+  become: true
+  serial: 10
+  pre_tasks:
+    - name: Gather facts from ALL hosts (regardless of limit or tags)
+      tags: always
+      setup:
+      delegate_to: "{{ item }}"
+      delegate_facts: True
+      when: hostvars[item]['ansible_' + humio_network_interface] is not defined
+      with_items: "{{ groups['all'] }}"
+
+############################################
+#
+# Install Java + Zookeeper roles on zookeeper hosts
+#
+- hosts: zookeepers
+  tags: zookeeper
+  become: true
+  roles:
+    - role: humio.java
+    - role: AnsibleShipyard.ansible-zookeeper
+      zookeeper_hosts: "
+       {%- set ips = [] %}
+       {%- for host in groups['zookeepers'] %}
+       {{- ips.append(dict(id=hostvars[host]['cluster_index'], host=host, ip=hostvars[host]['ansible_' + humio_network_interface].ipv4.address)) }}
+       {%- endfor %}
+       {{- ips -}}"
+
+############################################
+#
+# Install Java + Kafka roles on kafka hosts
+#
+- hosts: kafkas
+  tags: kafka
+  serial: 1
+  become: true
+  roles:
+    - role: humio.java
+    - role: humio.kafka
+      zookeeper_hosts: "
+       {%- set ips = [] %}
+       {%- for host in groups['zookeepers'] %}
+       {{- ips.append(dict(id=hostvars[host]['cluster_index'], host=host, ip=hostvars[host]['ansible_' + humio_network_interface].ipv4.address)) }}
+       {%- endfor %}
+       {{- ips -}}"
+      kafka_broker_id: "{{ cluster_index }}"
+      kafka_listeners:
+        - host: "{{ hostvars[inventory_hostname]['ansible_' + humio_network_interface].ipv4.address }}"
+
+############################################
+#
+# Install Java + Humio roles on humio hosts
+#
+- hosts: humios
+  tags: humio
+  serial: 1
+  become: true
+  roles:
+    - role: humio.java
+    - role: humio.server
+      zookeeper_hosts: "
+       {%- set ips = [] %}
+       {%- for host in groups['zookeepers'] %}
+       {{- ips.append(dict(id=hostvars[host]['cluster_index'], host=host, ip=hostvars[host]['ansible_' + humio_network_interface].ipv4.address)) }}
+       {%- endfor %}
+       {{- ips -}}"
+      kafka_hosts: "
+       {%- set ips = [] %}
+       {%- for host in groups['kafkas'] %}
+       {{- ips.append(dict(id=hostvars[host]['cluster_index'], host=host, ip=hostvars[host]['ansible_' + humio_network_interface].ipv4.address)) }}
+       {%- endfor %}
+       {{- ips -}}"
+      humio_host_id: "{{ cluster_index }}"
+      humio_config:
+        "0": "EXTERNAL_URL=http://{{ hostvars[inventory_hostname]['ansible_' + humio_network_interface].ipv4.address }}:8080"
+        "1": "EXTERNAL_URL=http://{{ hostvars[inventory_hostname]['ansible_' + humio_network_interface].ipv4.address }}:8081"
+
+############################################
+#
+# Execute Humio API requests to the Cluster Management API
+# to rebalance the Humio storage and digest partitions
+# https://docs.humio.com/api/cluster-management-api/
+#
+- hosts: localhost
+  connection: local
+  tasks:
+    - name: Rebalance partitions
+      tags: humio
+      uri:
+        url: "http://{{ hostvars[groups['humios']|random]['ansible_' + humio_network_interface].ipv4.address }}:8080/api/v1/clusterconfig/partitions/setdefaults"
+        method: POST
+    - name: Create repository
+      tags: humio
+      uri:
+        url: "http://{{ hostvars[groups['humios']|random]['ansible_' + humio_network_interface].ipv4.address }}:8080/graphql"
+        method: POST
+        body_format: json
+        body: |
+          {
+            "query":"mutation {createRepository(name: \"dataspace0\") {__typename}}"
+          }
+    - debug:
+        msg: "Congratulations. Humio is now available at http://{{ hostvars[groups['humios']|random]['ansible_' + humio_network_interface].ipv4.address }}:8080"

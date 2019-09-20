@@ -8,12 +8,14 @@ The purpose of this repository is to serve as inspiration for how Humio can be d
 * [humio.kafka](https://galaxy.ansible.com/humio/kafka)
 * [humio.server](https://galaxy.ansible.com/humio/server)
 
-Bare in mind that *we take no responsibility for breaking changes* in the examples themselves. Therefor we strongly recommend you only use them as inspiration.
+Bear in mind that *we take no responsibility for breaking changes* in the examples themselves. Therefore, we strongly recommend you only use them as inspiration.
 
 ## Samples
 
 We have divided this repository into a number of separate sample projects, mainly
 
 * [AWS EC2](aws_ec2)
+* [Bare Metal](bare_metal)
 * [DigitalOcean](digitalocean)
+* [Microsoft Azure](azure_rm)
 * [Packet.net](packet_net)

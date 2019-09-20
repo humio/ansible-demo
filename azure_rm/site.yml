@@ -1,0 +1,63 @@
+---
+
+- hosts: all
+  gather_facts: False
+  tags: init
+  become: yes
+  tasks:
+  - name: install python 2
+    raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+
+- hosts: zookeepers
+  become: true
+  tags: zookeeper
+  roles:
+    - role: humio.java
+    - role: AnsibleShipyard.ansible-zookeeper
+      zookeeper_version: 3.4.14
+      zookeeper_url: http://dk.mirrors.quenda.co/apache/zookeeper/zookeeper-3.4.14/zookeeper-3.4.14.tar.gz
+      zookeeper_hosts: "
+       {%- set ips = [] %}
+       {%- for host in groups['zookeepers'] %}
+       {{- ips.append(dict(id=hostvars[host]['tags']['cluster_index'], host=host, ip=hostvars[host].private_ipv4_addresses[0])) }}
+       {%- endfor %}
+       {{- ips -}}"
+
+- hosts: kafkas
+  tags: kafka
+  become: true
+  roles:
+    - role: humio.java
+    - role: humio.kafka
+      kafka_broker_id: "{{ tags.cluster_index }}"
+      zookeeper_hosts: "
+       {%- set ips = [] %}
+       {%- for host in groups['zookeepers'] %}
+       {{- ips.append(dict(id=hostvars[host]['tags']['cluster_index'], host=host, ip=hostvars[host].private_ipv4_addresses[0])) }}
+       {%- endfor %}
+       {{- ips -}}"
+      kafka_listeners:
+        - host: "{{ private_ipv4_addresses[0] }}"
+
+- hosts: humios
+  tags: humio
+  become: true
+  serial: 1
+  roles:
+    - role: humio.java
+    - role: humio.server
+      humio_host_id: "{{ tags.cluster_index }}"
+      zookeeper_hosts: "
+       {%- set ips = [] %}
+       {%- for host in groups['zookeepers'] %}
+       {{- ips.append(dict(id=hostvars[host]['tags']['cluster_index'], host=host, ip=hostvars[host].private_ipv4_addresses[0])) }}
+       {%- endfor %}
+       {{- ips -}}"
+      kafka_hosts: "
+       {%- set ips = [] %}
+       {%- for host in groups['kafkas'] %}
+       {{- ips.append(dict(id=hostvars[host]['tags']['cluster_index'], host=host, ip=hostvars[host].private_ipv4_addresses[0])) }}
+       {%- endfor %}
+       {{- ips -}}"
+      humio_config:
+        "0": "EXTERNAL_URL=http://{{ private_ipv4_addresses[0] }}:8080"

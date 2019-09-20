@@ -59,10 +59,10 @@ Finally, the cluster can be provisioned with the `site.yml` playbook
 ansible-playbook site.yml
 ```
 
-Once the cluster is up and running, the Humio web interface should be on the ui load balancer. Bare in mind it can take up to 2 minutes before the nodes are deemed healthy by the Target Group
+Once the cluster is up and running, the Humio web interface should be on the ui load balancer. Bear in mind it can take up to 2 minutes before the nodes are deemed healthy by the Target Group
 
 ```bash
-open $(terraform output "Humio ui")
+open $(terraform output "humio_ui")
 ```
 
 ## Selecting Operating System
@@ -78,7 +78,7 @@ ansible-playbook -u ec2-user site.yml
 
 ### CentOS Linux
 
-Bare in mind that for this particular AMI, you'll need to Accept Terms and Conditions
+Bear in mind that for this particular AMI, you'll need to Accept Terms and Conditions
 
 ```bash
 export TF_VAR_aws_ami_filter="CentOS Linux 7 x86_64 HVM EBS ENA 1805_01*"

@@ -1,4 +1,4 @@
 ---
-humio_version: 1.2.3
-kafka_version: 2.0.1
+humio_version: 1.5.23
+kafka_version: 2.1.1
 kafka_scala_version: 2.12
