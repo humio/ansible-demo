@@ -53,10 +53,12 @@ declare -r gsutil=/root/google-cloud-sdk/bin/gsutil
 declare -r gcloud=/root/google-cloud-sdk/bin/gcloud
 
 \$gsutil cp gs://${var.gcp_project_id}-saml/saml-config.txt /etc/ansible/saml/saml-config.txt
+\$gsutil cp gs://${var.gcp_project_id}-saml/saml-cert.pem /etc/ansible/saml/saml-cert.pem
 eof'
   sudo chmod +x /etc/ansible/fetch-saml-settings.sh
 
   sudo mkdir -p /etc/ansible/saml && touch /etc/ansible/saml/saml-config.txt
+  sudo mkdir -p /etc/ansible/saml && touch /etc/ansible/saml/saml-cert.pem
 
   sudo bash -c 'cat << eof > /bootstrap.sh
 #!/bin/sh
