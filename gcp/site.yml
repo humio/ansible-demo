@@ -215,6 +215,7 @@
     - role: humio.server
       tags: humio
       humio_host_id: "{{ ansible_local['cluster_index'] }}"
+      humio_public_url: "{{ ansible_local['public_url'] }}"
       humio_config:
         "all": |
           CACHE_STORAGE_DIRECTORY=/var/humio/cache
@@ -282,6 +283,7 @@
     - role: humio.server
       tags: humio
       humio_host_id: "{{ ansible_local['cluster_index'] }}"
+      humio_public_url: "{{ ansible_local['public_url'] }}"
       humio_config:
         "all": |
           NODE_ROLES=httponly
