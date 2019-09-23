@@ -50,3 +50,8 @@ variable "es_hostname" {
   default = "xx.xxx.com"
 
 }
+
+variable "public_url" {
+  type = "string"
+  default = "https://humio.example.com"
+}

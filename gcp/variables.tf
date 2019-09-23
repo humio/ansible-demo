@@ -67,3 +67,7 @@ variable "machine_type" {
   type = "string"
   default = "n1-standard-8"
 }
+variable "public_url" {
+  type = "string"
+  default = ""
+}
