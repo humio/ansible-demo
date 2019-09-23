@@ -1,4 +1,3 @@
-humio_public_url: https://gcp-test.humio.com
 humio_java_opts:
   - "-server"
   - "-XX:+UseParallelOldGC"
