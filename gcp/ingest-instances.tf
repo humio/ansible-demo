@@ -27,7 +27,7 @@ resource "google_compute_instance_template" "humioingest" {
   sudo apt-get install -yq build-essential python jq docker.io
   sudo mkdir -p /etc/ansible/facts.d/
   sudo hostname | tr -dc '0-9' | sed -e 's/^0*//g' > /etc/ansible/facts.d/cluster_index.fact
-  echo "${var.public_url}" > /etc/ansible/facts.d/public_url.fact
+  echo \"${var.public_url}\" > /etc/ansible/facts.d/public_url.fact
 
   sudo mkdir /home/ubuntu/.ssh; sudo touch /home/ubuntu/.ssh
   sudo chown -r ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
