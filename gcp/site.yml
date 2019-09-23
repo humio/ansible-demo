@@ -75,6 +75,10 @@
   tags: disk
   become: true
   tasks:
+    - name: create Humio group
+      group: name=humio system=yes
+    - name: create humio user
+      user: name=humio system=yes group=humio
     - name: parition sdb
       parted:
         device: /dev/sdb
@@ -250,8 +254,14 @@
         fstype: xfs
         src: /dev/nvme0n1
         path: /var/humio/cache
-        opts: uid=humio,gid=humio
         state: mounted
+    - name: Chown directory
+      file:
+        path: "/var/humio/cache"
+        state: directory
+        owner: "humio"
+        group: "humio"
+        mode: 0755
 - hosts: tag_humioingest
   serial: 1
   become: true

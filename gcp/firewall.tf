@@ -11,6 +11,9 @@ resource "google_compute_firewall" "local-network" {
     protocol = "udp"
     ports    = ["2888","3888"]
   }
+  allow {
+    protocol = "icmp"
+  }
 
   target_tags   = ["humios", "humioingest", "kafkas", "zookeepers"]
   source_tags   = ["humios", "humioingest", "kafkas", "zookeepers"]
@@ -22,10 +25,10 @@ resource "google_compute_firewall" "allow_health_check" {
 
   allow {
     protocol = "tcp"
-    ports    = ["8081", "9201"]
+    ports    = ["8081"]
   }
 
-  target_tags   = ["humios", "humioingest", "kafkas"]
+  target_tags   = ["humios"]
   source_ranges = ["130.211.0.0/22", "35.191.0.0/16"]
 }
 
