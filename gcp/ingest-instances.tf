@@ -64,14 +64,14 @@ eof'
   sudo bash -c 'cat << eof > /bootstrap.sh
 #!/bin/sh
 
-sudo docker pull humio/ansible:50244158bd92ed028b0e96e9059414efaa85ad6Z
+sudo docker pull humio/ansible
 
 sudo docker run --rm --net=host \
   -v /home/ubuntu/.ssh/authorized_keys:/tmp/authorized_keys \
   -v /var/lib/gce.ini:/etc/ansible/gce.ini \
   -v /etc/ansible/fetch-saml-settings.sh:/etc/ansible/fetch-saml-settings.sh \
   -v /etc/ansible/saml:/etc/ansible/saml \
-  humio/ansible:50244158bd92ed028b0e96e9059414efaa85ad6Z
+  humio/ansible
 eof'
 
   sudo chmod +x /bootstrap.sh
