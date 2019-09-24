@@ -28,6 +28,7 @@ resource "google_compute_instance_template" "humioingest" {
   sudo mkdir -p /etc/ansible/facts.d/
   sudo hostname | tr -dc '0-9' | sed -e 's/^0*//g' > /etc/ansible/facts.d/cluster_index.fact
   echo \"${var.public_url}\" > /etc/ansible/facts.d/public_url.fact
+  echo \"${var.permissions_source}"\ > /etc/ansible/facts.d/humio_permissions.fact
 
   sudo mkdir /home/ubuntu/.ssh; sudo touch /home/ubuntu/.ssh
   sudo chown -r ubuntu:ubuntu /home/ubuntu/.ssh; sudo chmod 700 /home/ubuntu/.ssh
@@ -55,6 +56,7 @@ declare -r gcloud=/root/google-cloud-sdk/bin/gcloud
 
 \$gsutil cp gs://${var.gcp_project_id}-saml/saml-config.txt /etc/ansible/saml/saml-config.txt
 \$gsutil cp gs://${var.gcp_project_id}-saml/saml-cert.pem /etc/ansible/saml/saml-cert.pem
+\$gsutil cp gs://${var.gcp_project_id}-saml/permissions.json /etc/ansible/permissions.json
 eof'
   sudo chmod +x /etc/ansible/fetch-saml-settings.sh
 
