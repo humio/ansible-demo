@@ -1,6 +1,5 @@
 ---
-- src: AnsibleShipyard.ansible-zookeeper
-  version: 0.23.0
+- src: humio.zookeeper
 
 - src: humio.kafka
 

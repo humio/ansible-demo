@@ -29,7 +29,7 @@
   become: true
   roles:
     - role: humio.java
-    - role: AnsibleShipyard.ansible-zookeeper
+    - role: humio.zookeeper
       zookeeper_hosts: "
        {%- set ips = [] %}
        {%- for host in groups['zookeepers'] %}
