@@ -1,7 +1,7 @@
 ---
 ############################################
 #
-# AnsibleShipyard.ansible-zookeeper variables
+# humio.zookeeper variables
 #
 # Currently, only versions in the 3.4.x series are supported.
 # 3.5.x versions may work, but there is a known issue with
@@ -21,7 +21,7 @@ zookeeper_url: "http://archive.apache.org/dist/zookeeper/zookeeper-{{ zookeeper_
 # the version of Humio to use. a list of versions with
 # their changes can be found in the changelog:
 # https://docs.humio.com/release-notes/
-humio_version: 1.6.7
+humio_version: 1.8.5
 
 # the name of the network interface Humio will be listening
 # on as displayed in `ifconfig` output
