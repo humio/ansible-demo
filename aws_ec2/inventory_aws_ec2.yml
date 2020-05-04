@@ -4,5 +4,3 @@ regions:
 keyed_groups:
   - prefix: tag
     key: tags
-  - key: 'security_groups|json_query("[].group_name")'
-    prefix: 'security_group'
