@@ -1,6 +1,6 @@
 ---
 
-- hosts: tag_zookeeper_true
+- hosts: zookeeper
   become: true
   tags: zookeeper
   roles:
@@ -15,7 +15,7 @@
        {%- endfor %}
        {{- ips -}}"
 
-- hosts: tag_kafka_true
+- hosts: kafka
   tags: kafka
   become: true
   roles:
@@ -31,7 +31,7 @@
       kafka_listeners:
         - host: "{{ ec2_private_ip_address }}"
 
-- hosts: tag_humio_true
+- hosts: humio
   tags: humio
   become: true
   serial: 1
