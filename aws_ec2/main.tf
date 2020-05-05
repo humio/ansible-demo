@@ -295,12 +295,17 @@ USERDATA
     network_interface_id = element(aws_network_interface.nic.*.id, count.index)
   }
 
-  tags = {
-    Name          = format("humio%02d", count.index + 1)
-    cluster_index = count.index + 1
-    Group = "professional services"
-  }
+    tags = {
+      Name          = format("humio%02d", count.index + 1)
+      cluster_index = count.index + 1
+      Group = "professional services"
+    count.index < 3 ? "zookeeper" : "${count.index < 6 ? "kafka" : "humio"}" = ""
+    }
+  
 }
+
+
+
 
 resource "aws_lb_target_group_attachment" "zkh-ui" {
   target_group_arn = aws_lb_target_group.ui-http.arn

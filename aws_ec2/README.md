@@ -9,6 +9,7 @@ Requirements
 ## Getting started
 
 Make sure you have your AWS access keys, default region and the name of your key pair configured, i.e.
+Terraform 0.12.24 is recommended. 
 
 ```bash
 export AWS_ACCESS_KEY_ID="AK123"
@@ -33,7 +34,7 @@ To make sure we can communicate with the servers run:
 ```bash
 ansible all -m ping
 ```
-
+You should be able to get a success message
 
 
 In this demo we will configure the following parts

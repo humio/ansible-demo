@@ -31,15 +31,17 @@ DESCRIPTION
 
 }
 
+
+variable "instances" {
+  type    = string
+  default = "9"
+}
+
 variable "zookeepers" {
   type    = string
   default = "3"
 }
 
-variable "instances" {
-  type    = string
-  default = "8"
-}
 
 variable "zones" {
   type    = string
