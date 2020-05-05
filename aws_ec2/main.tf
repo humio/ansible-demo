@@ -272,10 +272,9 @@ resource "aws_network_interface" "nic" {
   )]
   security_groups = [
     aws_security_group.main.id,
-    count.index < var.zookeepers ? aws_security_group.zookeepers.id : "",
-    aws_security_group.kafkas.id,
-    aws_security_group.humios.id,
+    count.index < 3 ? aws_security_group.zookeepers.id  : "${count.index < 6 ? aws_security_group.kafkas.id : aws_security_group.humios.id}"
   ] //TODO: Replace humio_security_group with ELBs
+  
 }
 
 resource "aws_instance" "humios" {

@@ -1,16 +1,16 @@
 ---
 
-- hosts: zookeeper
+- hosts: zookeepers
   become: true
   tags: zookeeper
   roles:
     - role: humio.java
     - role: AnsibleShipyard.ansible-zookeeper
-      zookeeper_version: 3.4.12
-      zookeeper_url: http://dk.mirrors.quenda.co/apache/zookeeper/zookeeper-3.4.12/zookeeper-3.4.12.tar.gz
+      zookeeper_version: 3.4.14
+      zookeeper_url: http://apache.mirrors.hoobly.com/zookeeper/zookeeper-3.4.14/zookeeper-3.4.14.tar.gz
       zookeeper_hosts: "
        {%- set ips = [] %}
-       {%- for host in groups['security_group_zookeepers'] %}
+       {%- for host in groups['zookeepers'] %}
        {{- ips.append(dict(id=hostvars[host]['ec2_tag_cluster_index'], host=host, ip=hostvars[host].ec2_private_ip_address)) }}
        {%- endfor %}
        {{- ips -}}"
@@ -24,7 +24,7 @@
       kafka_broker_id: "{{ ec2_tag_cluster_index }}"
       zookeeper_hosts: "
        {%- set ips = [] %}
-       {%- for host in groups['security_group_zookeepers'] %}
+       {%- for host in groups['zookeepers'] %}
        {{- ips.append(dict(id=hostvars[host]['ec2_tag_cluster_index'], host=host, ip=hostvars[host].ec2_private_ip_address)) }}
        {%- endfor %}
        {{- ips -}}"
@@ -41,13 +41,13 @@
       humio_host_id: "{{ ec2_tag_cluster_index }}"
       zookeeper_hosts: "
        {%- set ips = [] %}
-       {%- for host in groups['security_group_zookeepers'] %}
+       {%- for host in groups['zookeepers'] %}
        {{- ips.append(dict(id=hostvars[host]['ec2_tag_cluster_index'], host=host, ip=hostvars[host].ec2_private_ip_address)) }}
        {%- endfor %}
        {{- ips -}}"
       kafka_hosts: "
        {%- set ips = [] %}
-       {%- for host in groups['security_group_kafkas'] %}
+       {%- for host in groups['kafka'] %}
        {{- ips.append(dict(id=hostvars[host]['ec2_tag_cluster_index'], host=host, ip=hostvars[host].ec2_private_ip_address)) }}
        {%- endfor %}
        {{- ips -}}"
