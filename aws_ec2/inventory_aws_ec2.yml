@@ -1,0 +1,8 @@
+plugin: aws_ec2
+regions:
+  - us-west-1
+groups:
+  # add hosts to the group development if any of the dictionary's keys or values is the word 'devel'
+  humio: "'humio' in (tags|list)"
+  kafka: "'kafka' in (tags|list)"
+  zookeepers: "'zookeeper' in (tags|list)"
