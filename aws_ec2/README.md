@@ -29,6 +29,13 @@ With that, Terraform is ready to spin up a new environment
 terraform apply
 ```
 
+To make sure we can communicate with the servers run:
+```bash
+ansible all -m ping
+```
+
+
+
 In this demo we will configure the following parts
 * VPC with an Internet Gateway
 * A primary and secondary subnets
