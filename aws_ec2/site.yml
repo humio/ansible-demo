@@ -23,15 +23,15 @@
   roles:
     - role: humio.java
     - role: humio.kafka
-      kafka_broker_id: "{{ ec2_tag_cluster_index }}"
+      kafka_broker_id: "{{ tags.cluster_index }}"
       zookeeper_hosts: "
        {%- set ips = [] %}
        {%- for host in groups['zookeepers'] %}
-       {{- ips.append(dict(id=hostvars[host]['ec2_tag_cluster_index'], host=host, ip=hostvars[host].ec2_private_ip_address)) }}
+       {{- ips.append(dict(id=hostvars[host]['tags']['cluster_index'], host=host, ip=hostvars[host]['private_ip_address'])) }}
        {%- endfor %}
        {{- ips -}}"
       kafka_listeners:
-        - host: "{{ groups['all'] | map('extract', hostvars, ['ansible_default_ipv4', 'address']) | join(',') }}"
+        - host: "{{ private_ip_address }}"
 
 - hosts: humio
   tags: humio
@@ -40,7 +40,7 @@
   roles:
     - role: humio.java
     - role: humio.server
-      humio_host_id: "{{ cluster_index }}"
+      humio_host_id: "{{ tags.cluster_index }}"
       zookeeper_hosts: "
        {%- set ips = [] %}
        {%- for host in groups['zookeepers'] %}
