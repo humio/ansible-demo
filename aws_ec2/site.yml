@@ -35,24 +35,25 @@
 
 - hosts: humio
   tags: humio
+  # debugger: always
   become: true
   serial: 1
-  roles:
+  roles: 
     - role: humio.java
     - role: humio.server
-      humio_host_id: "{{ tags.cluster_index }}"
+      humio_host_id: "{{ tags.humio }}"
       zookeeper_hosts: "
-       {%- set ips = [] %}
-       {%- for host in groups['zookeepers'] %}
-       {{- ips.append(dict(id=hostvars[host]['cluster_index'], host=host, ip=hostvars[host].ipv4.address)) }}
-       {%- endfor %}
-       {{- ips -}}"
+        {%- set ips = [] %}
+        {%- for host in groups['zookeepers'] %}
+        {{- ips.append(dict(id=hostvars[host]['tags']['zookeeper'], host=host, ip=hostvars[host].ipv4.address))  }}
+        {%- endfor %}
+        {{- ips -}}"
       kafka_hosts: "
-       {%- set ips = [] %}
-       {%- for host in groups['kafka'] %}
-       {{- ips.append(dict(id=hostvars[host]['cluster_index'], host=host, ip=hostvars[host].ipv4.address)) }}
-       {%- endfor %}
-       {{- ips -}}"
+        {%- set ips = [] %}
+        {%- for host in groups['kafka'] %}
+        {{- ips.append(dict(id=hostvars[host]['tags']['kafka'], host=host, ip=hostvars[host].ipv4.address))  }}
+        {%- endfor %}
+        {{- ips -}}"
       humio_config:
-##        all: "FILE=humio_config"
-        "0": "EXTERNAL_URL=http://{{ ec2_private_ip_address }}:8080"
+        "all": "humio-config"
+        "0": "EXTERNAL_URL=http://{{ private_ip_address }}:8080"
