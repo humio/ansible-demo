@@ -34,7 +34,16 @@ To make sure we can communicate with the servers run:
 ```bash
 ansible all -m ping
 ```
-You should be able to get a success message
+You should be able to get a success message like this
+```bash
+<ip address>.compute.amazonaws.com | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+```
 
 
 In this demo we will configure the following parts
