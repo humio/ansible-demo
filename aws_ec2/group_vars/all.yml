@@ -1,4 +1,28 @@
 ---
-humio_version: 1.6.7
-kafka_version: 2.1.1
+humio_version: 1.10.1
+kafka_version: 2.4.1
 kafka_scala_version: 2.12
+
+# for zookeeper 3.5.x set
+# `admin.serverPort` in the zoo.cfg.
+zookeeper_version: 3.4.14
+zookeeper_url: "http://archive.apache.org/dist/zookeeper/zookeeper-{{ zookeeper_version }}/zookeeper-{{ zookeeper_version }}.tar.gz"
+ ############################################
+ #
+ # humio.server variables
+ #
+ # the version of Humio to use. a list of versions with
+ # their changes can be found in the changelog:
+ # https://docs.humio.com/release-notes/
+ #humio_version: 1.6.7
+
+ # the name of the network interface Humio will be listening
+ # on as displayed in `ifconfig` output
+ #humio_network_interface: enp0s3
+ # aws ec2 interface name
+humio_network_interface: ens5
+ ############################################
+ #
+ # humio.kafka variables
+ #
+
