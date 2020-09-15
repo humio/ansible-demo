@@ -1,56 +1,57 @@
 ---
 
-- hosts: security_group_zookeepers
+- hosts: zookeepers
   become: true
   tags: zookeeper
   roles:
     - role: humio.java
-    - role: AnsibleShipyard.ansible-zookeeper
+    - role: humio.zookeeper
       zookeeper_version: 3.4.12
-      zookeeper_url: http://dk.mirrors.quenda.co/apache/zookeeper/zookeeper-3.4.12/zookeeper-3.4.12.tar.gz
+      # zookeeper_url: http://https://mirrors.sonic.net/apache/zookeeper/zookeeper-3.4.12/zookeeper-3.4.12.tar.gz
       zookeeper_hosts: "
        {%- set ips = [] %}
-       {%- for host in groups['security_group_zookeepers'] %}
-       {{- ips.append(dict(id=hostvars[host]['ec2_tag_cluster_index'], host=host, ip=hostvars[host].ec2_private_ip_address)) }}
+       {%- for host in groups['zookeepers'] %}
+       {{- ips.append(dict(id=hostvars[host]['cluster_index'], host=host, ip=hostvars[host]['internal_ip'])) }}
        {%- endfor %}
        {{- ips -}}"
 
-- hosts: security_group_kafkas
+- hosts: kafkas
   tags: kafka
   become: true
   roles:
     - role: humio.java
     - role: humio.kafka
-      kafka_broker_id: "{{ ec2_tag_cluster_index }}"
+      kafka_broker_id: "{{ cluster_index }}"
       zookeeper_hosts: "
        {%- set ips = [] %}
-       {%- for host in groups['security_group_zookeepers'] %}
-       {{- ips.append(dict(id=hostvars[host]['ec2_tag_cluster_index'], host=host, ip=hostvars[host].ec2_private_ip_address)) }}
+       {%- for host in groups['zookeepers'] %}
+       {{- ips.append(dict(id=hostvars[host]['cluster_index'], host=host, ip=hostvars[host]['internal_ip'])) }}
        {%- endfor %}
        {{- ips -}}"
       kafka_listeners:
-        - host: "{{ ec2_private_ip_address }}"
+        - host: "{{ internal_ip }}"
 
-- hosts: security_group_humios
+- hosts: humios
   tags: humio
   become: true
   serial: 1
   roles:
     - role: humio.java
     - role: humio.server
-      humio_host_id: "{{ ec2_tag_cluster_index }}"
+      humio_version: "1.14.1"
+      humio_host_id: "{{ cluster_index }}"
       zookeeper_hosts: "
        {%- set ips = [] %}
-       {%- for host in groups['security_group_zookeepers'] %}
-       {{- ips.append(dict(id=hostvars[host]['ec2_tag_cluster_index'], host=host, ip=hostvars[host].ec2_private_ip_address)) }}
+       {%- for host in groups['zookeepers'] %}
+       {{- ips.append(dict(id=hostvars[host]['cluster_index'], host=host, ip=hostvars[host]['internal_ip'])) }}
        {%- endfor %}
        {{- ips -}}"
       kafka_hosts: "
        {%- set ips = [] %}
-       {%- for host in groups['security_group_kafkas'] %}
-       {{- ips.append(dict(id=hostvars[host]['ec2_tag_cluster_index'], host=host, ip=hostvars[host].ec2_private_ip_address)) }}
+       {%- for host in groups['kafkas'] %}
+       {{- ips.append(dict(id=hostvars[host]['cluster_index'], host=host, ip=hostvars[host]['internal_ip'])) }}
        {%- endfor %}
        {{- ips -}}"
       humio_config:
 ##        all: "FILE=humio_config"
-        "0": "EXTERNAL_URL=http://{{ ec2_private_ip_address }}:8080"
+        "0": "EXTERNAL_URL=http://{{ internal_ip }}:8080"

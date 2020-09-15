@@ -1,20 +1,20 @@
 provider "aws" {}
 
-data "aws_ami" "ami" {
-  most_recent = true
+// data "aws_ami" "ami" {
+//   most_recent = true
 
-  filter {
-    name   = "name"
-    values = ["${var.aws_ami_filter}"]
-  }
+//   filter {
+//     name   = "name"
+//     values = ["${var.aws_ami_filter}"]
+//   }
 
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
+//   filter {
+//     name   = "virtualization-type"
+//     values = ["hvm"]
+//   }
 
-//  owners = ["099720109477"]
-}
+// //  owners = ["099720109477"]
+// }
 
 data "aws_availability_zones" "available" {}
 
@@ -177,87 +177,87 @@ resource "aws_subnet" "subnets" {
   map_public_ip_on_launch = true
 }
 
-resource "aws_lb" "ui" {
-  name = "humio-ui"
-  internal = false
-  load_balancer_type = "application"
-  subnets = ["${aws_subnet.subnets.*.id}"]
-  security_groups = ["${aws_security_group.ui-public.id}"]
-}
+// resource "aws_lb" "ui" {
+//   name = "humio-ui"
+//   internal = false
+//   load_balancer_type = "application"
+//   subnets = ["${aws_subnet.subnets.*.id}"]
+//   security_groups = ["${aws_security_group.ui-public.id}"]
+// }
 
-resource "aws_lb" "ingest" {
-  name = "humio-ingest"
-  internal = false
-  load_balancer_type = "application"
-  subnets = ["${aws_subnet.subnets.*.id}"]
-  security_groups = ["${aws_security_group.ingest-public.id}"]
-}
+// resource "aws_lb" "ingest" {
+//   name = "humio-ingest"
+//   internal = false
+//   load_balancer_type = "application"
+//   subnets = ["${aws_subnet.subnets.*.id}"]
+//   security_groups = ["${aws_security_group.ingest-public.id}"]
+// }
 
-resource "aws_lb_target_group" "ui-http" {
-  name = "humio-ui"
-  port = 8080
-  protocol = "HTTP"
-  vpc_id = "${aws_vpc.humio.id}"
-  health_check {
-    path = "/api/v1/status"
-  }
-  stickiness {
-    type = "lb_cookie"
-  }
-}
+// resource "aws_lb_target_group" "ui-http" {
+//   name = "humio-ui"
+//   port = 8080
+//   protocol = "HTTP"
+//   vpc_id = "${aws_vpc.humio.id}"
+//   health_check {
+//     path = "/api/v1/status"
+//   }
+//   stickiness {
+//     type = "lb_cookie"
+//   }
+// }
 
-resource "aws_lb_target_group" "ingest-api" {
-  name = "humio-ingest-api"
-  port = 8080
-  protocol = "HTTP"
-  vpc_id = "${aws_vpc.humio.id}"
-  health_check {
-    path = "/api/v1/status"
-  }
-}
+// resource "aws_lb_target_group" "ingest-api" {
+//   name = "humio-ingest-api"
+//   port = 8080
+//   protocol = "HTTP"
+//   vpc_id = "${aws_vpc.humio.id}"
+//   health_check {
+//     path = "/api/v1/status"
+//   }
+// }
 
-resource "aws_lb_target_group" "ingest-es" {
-  name = "humio-ingest-es"
-  port = 9200
-  protocol = "HTTP"
-  vpc_id = "${aws_vpc.humio.id}"
-  health_check {
-    path = "/_bulk"
-    matcher = "200-499"
-  }
-}
+// resource "aws_lb_target_group" "ingest-es" {
+//   name = "humio-ingest-es"
+//   port = 9200
+//   protocol = "HTTP"
+//   vpc_id = "${aws_vpc.humio.id}"
+//   health_check {
+//     path = "/_bulk"
+//     matcher = "200-499"
+//   }
+// }
 
-resource "aws_lb_listener" "humio-ui-http" {
-  load_balancer_arn = "${aws_lb.ui.arn}"
-  port = 80
-  protocol = "HTTP"
+// resource "aws_lb_listener" "humio-ui-http" {
+//   load_balancer_arn = "${aws_lb.ui.arn}"
+//   port = 80
+//   protocol = "HTTP"
 
-  "default_action" {
-    type = "forward"
-    target_group_arn = "${aws_lb_target_group.ui-http.arn}"
-  }
-}
+//   default_action {
+//     type = "forward"
+//     target_group_arn = "${aws_lb_target_group.ui-http.arn}"
+//   }
+// }
 
-resource "aws_lb_listener" "humio-ingest-http" {
-  load_balancer_arn = "${aws_lb.ingest.arn}"
-  port = 80
-  protocol = "HTTP"
+// resource "aws_lb_listener" "humio-ingest-http" {
+//   load_balancer_arn = "${aws_lb.ingest.arn}"
+//   port = 80
+//   protocol = "HTTP"
 
-  "default_action" {
-    type = "forward"
-    target_group_arn = "${aws_lb_target_group.ingest-api.arn}"
-  }
-}
-resource "aws_lb_listener" "humio-ingest-es" {
-  load_balancer_arn = "${aws_lb.ingest.arn}"
-  port = 9200
-  protocol = "HTTP"
+//   default_action {
+//     type = "forward"
+//     target_group_arn = "${aws_lb_target_group.ingest-api.arn}"
+//   }
+// }
+// resource "aws_lb_listener" "humio-ingest-es" {
+//   load_balancer_arn = "${aws_lb.ingest.arn}"
+//   port = 9200
+//   protocol = "HTTP"
 
-  "default_action" {
-    type = "forward"
-    target_group_arn = "${aws_lb_target_group.ingest-es.arn}"
-  }
-}
+//   default_action {
+//     type = "forward"
+//     target_group_arn = "${aws_lb_target_group.ingest-es.arn}"
+//   }
+// }
 
 resource "aws_network_interface" "nic" {
   count = "${var.instances}"
@@ -273,9 +273,11 @@ resource "aws_network_interface" "nic" {
 
 resource "aws_instance" "humios" {
   count = "${var.instances}"
-  ami = "${data.aws_ami.ami.image_id}"
+  ami = "ami-0157b1e4eefd91fd7" 
+
   instance_type = "${var.humio_plan}"
-  key_name = "${var.aws_key_name}"
+  #key_name = "${var.aws_key_name}"
+  key_name = "ansible-test"
 
   user_data = <<USERDATA
 #!/bin/bash
@@ -287,36 +289,36 @@ USERDATA
     network_interface_id = "${element(aws_network_interface.nic.*.id, count.index)}"
   }
 
-  tags {
-    Name = "${format("humio%02d", count.index + 1)}"
-    cluster_index = "${count.index + 1}"
-  }
+  // tags {
+  //   Name = "${format("humio%02d", count.index + 1)}"
+  //   cluster_index = "${count.index + 1}"
+  // }
 }
 
-resource "aws_lb_target_group_attachment" "zkh-ui" {
-  target_group_arn = "${aws_lb_target_group.ui-http.arn}"
-  target_id = "${element(aws_instance.humios.*.id, count.index)}"
-  count = "${var.instances}"
-}
-resource "aws_lb_target_group_attachment" "zkh-ingest-http" {
-  target_group_arn = "${aws_lb_target_group.ingest-api.arn}"
-  target_id = "${element(aws_instance.humios.*.id, count.index)}"
-  count = "${var.instances}"
-}
-resource "aws_lb_target_group_attachment" "zkh-ingest-es" {
-  target_group_arn = "${aws_lb_target_group.ingest-es.arn}"
-  target_id = "${element(aws_instance.humios.*.id, count.index)}"
-  count = "${var.instances}"
-}
+// resource "aws_lb_target_group_attachment" "zkh-ui" {
+//   target_group_arn = "${aws_lb_target_group.ui-http.arn}"
+//   target_id = "${element(aws_instance.humios.*.id, count.index)}"
+//   count = "${var.instances}"
+// }
+// resource "aws_lb_target_group_attachment" "zkh-ingest-http" {
+//   target_group_arn = "${aws_lb_target_group.ingest-api.arn}"
+//   target_id = "${element(aws_instance.humios.*.id, count.index)}"
+//   count = "${var.instances}"
+// }
+// resource "aws_lb_target_group_attachment" "zkh-ingest-es" {
+//   target_group_arn = "${aws_lb_target_group.ingest-es.arn}"
+//   target_id = "${element(aws_instance.humios.*.id, count.index)}"
+//   count = "${var.instances}"
+// }
 
-output "humio_ui" {
-  value = "http://${aws_lb.ui.dns_name}"
-}
+// output "humio_ui" {
+//   value = "http://${aws_lb.ui.dns_name}"
+// }
 
-output "humio_ingest_api" {
-  value = "http://${aws_lb.ingest.dns_name}"
-}
+// output "humio_ingest_api" {
+//   value = "http://${aws_lb.ingest.dns_name}"
+// }
 
-output "humio_ingest_elastic" {
-  value = "http://${aws_lb.ingest.dns_name}:9200"
-}
+// output "humio_ingest_elastic" {
+//   value = "http://${aws_lb.ingest.dns_name}:9200"
+// }
