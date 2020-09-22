@@ -32,6 +32,59 @@
         - host: "{{ internal_ip }}"
 
 - hosts: humios
+  tags: disk
+  become: true
+  tasks:
+    - name: create Humio group
+      group: name=humio system=yes
+    - name: create humio user
+      user: name=humio system=yes group=humio
+- hosts: humios
+  tags: disk
+  become: true
+  tasks:
+    - name: install mdadm
+      yum:
+        name: mdadm
+        state: latest
+    - name: Check if drives are already mounted
+      shell: df | grep "/dev/md0" | wc -l
+      register: md_checked
+    - name: check for disks
+      when: md_checked.stdout == "0"
+      register: md_disks
+      shell: find /dev/disk/by-id -iname 'nvme-Amazon_EC2_NVMe_Instance_Storage_*'
+    - name: create md
+      when: md_checked.stdout == "0"
+      shell: mdadm --create --verbose /dev/md0 --force --level=0 --raid-devices={{ md_disks.stdout_lines | length }} {{ md_disks.stdout_lines | join(' ') }}
+    - name: parition md
+      when: md_checked.stdout == "0"
+      parted:
+        device: /dev/md0
+        number: 1
+        flags: [ lvm ]
+        label: gpt
+        state: present
+    - name: format md
+      when: md_checked.stdout == "0"
+      filesystem:
+        dev: /dev/md0
+        fstype: ext4
+    - name: mount md0
+      when: md_checked.stdout == "0"
+      mount:
+        fstype: ext4
+        src: /dev/md0
+        path: /var/humio
+        state: mounted
+    - name: Chown directory
+      file:
+        path: "/var/humio"
+        state: directory
+        owner: "humio"
+        group: "humio"
+        mode: 0755
+- hosts: humios
   tags: humio
   become: true
   serial: 1
@@ -52,6 +105,9 @@
        {{- ips.append(dict(id=hostvars[host]['cluster_index'], host=host, ip=hostvars[host]['internal_ip'])) }}
        {%- endfor %}
        {{- ips -}}"
+      humio_java_opts_Xms: "{{ (ansible_memtotal_mb|int * 0.6)|int }}M" 
+      humio_java_opts_Xmx: "{{ (ansible_memtotal_mb|int * 0.6)|int }}M" 
+      humio_java_opts_MaxDirectMemorySize: "{{ (ansible_memtotal_mb|int * 0.12)|int }}M"  
       humio_config:
 ##        all: "FILE=humio_config"
         "0": "EXTERNAL_URL=http://{{ internal_ip }}:8080"
