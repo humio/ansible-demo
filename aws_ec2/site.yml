@@ -1,5 +1,4 @@
 ---
-
 - hosts: zookeepers
   become: true
   tags: zookeeper
@@ -14,7 +13,55 @@
        {{- ips.append(dict(id=hostvars[host]['cluster_index'], host=host, ip=hostvars[host]['internal_ip'])) }}
        {%- endfor %}
        {{- ips -}}"
-
+- hosts: zookeepers
+  become: true
+  tasks:
+  - name: start zookeeper if not running
+    systemd:
+      name: zookeeper
+      state: started
+- hosts: kafkas
+  tags: kafka-disk
+  become: true
+  tasks:
+    - name: create Kafka group
+      group: name=kafka  system=yes
+    - name: create Kafka user
+      user: name=kafka system=yes group=kafka
+- hosts: kafkas
+  tags: kafka-disk
+  become: true
+  tasks:
+    - name: Check if drives are already mounted
+      shell: df | grep "/dev/xvdh" | wc -l
+      register: kafka_mount_checked
+    - name: parition kafka-disk
+      when: kafka_mount_checked.stdout == "0"
+      parted:
+        device: /dev/xvdh
+        number: 1
+        flags: [ lvm ]
+        label: gpt
+        state: present
+    - name: format kafka
+      when: kafka_mount_checked.stdout == "0"
+      filesystem:
+        dev: /dev/xvdh
+        fstype: ext4
+    - name: mount kafka ebs
+      when: kafka_mount_checked.stdout == "0"
+      mount:
+        fstype: ext4
+        src: /dev/xvdh
+        path: /var/kafka
+        state: mounted
+    - name: Chown directory
+      file:
+        path: "/var/kafka"
+        state: directory
+        owner: "kafka"
+        group: "kafka"
+        mode: 0755
 - hosts: kafkas
   tags: kafka
   become: true
