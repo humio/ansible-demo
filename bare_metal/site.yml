@@ -1,5 +1,4 @@
 ---
-############################################
 #
 # Gather facts from all machines in the cluster
 #
@@ -85,30 +84,3 @@
       humio_config:
         "0": "EXTERNAL_URL=http://{{ hostvars[inventory_hostname]['ansible_' + humio_network_interface].ipv4.address }}:8080"
         "1": "EXTERNAL_URL=http://{{ hostvars[inventory_hostname]['ansible_' + humio_network_interface].ipv4.address }}:8081"
-
-############################################
-#
-# Execute Humio API requests to the Cluster Management API
-# to rebalance the Humio storage and digest partitions
-# https://docs.humio.com/api/cluster-management-api/
-#
-- hosts: localhost
-  connection: local
-  tasks:
-    - name: Rebalance partitions
-      tags: humio
-      uri:
-        url: "http://{{ hostvars[groups['humios']|random]['ansible_' + humio_network_interface].ipv4.address }}:8080/api/v1/clusterconfig/partitions/setdefaults"
-        method: POST
-    - name: Create repository
-      tags: humio
-      uri:
-        url: "http://{{ hostvars[groups['humios']|random]['ansible_' + humio_network_interface].ipv4.address }}:8080/graphql"
-        method: POST
-        body_format: json
-        body: |
-          {
-            "query":"mutation {createRepository(name: \"dataspace0\") {__typename}}"
-          }
-    - debug:
-        msg: "Congratulations. Humio is now available at http://{{ hostvars[groups['humios']|random]['ansible_' + humio_network_interface].ipv4.address }}:8080"

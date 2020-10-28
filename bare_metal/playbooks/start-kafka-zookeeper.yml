@@ -1,0 +1,17 @@
+---
+- hosts:
+    - kafkas
+  become: true
+  tasks:
+  - name: start kafka service if not running
+    systemd:
+      name: kafka
+      state: started
+- hosts:
+    - zookeepers
+  become: true
+  tasks:
+  - name: start zookeeper service if not running
+    systemd:
+      name: zookeeper
+      state: started

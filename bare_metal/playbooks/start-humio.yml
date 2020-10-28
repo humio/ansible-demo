@@ -1,0 +1,9 @@
+---
+- hosts:
+    - humios
+  become: true
+  tasks:
+  - name: start humio service if not running
+    systemd:
+      name: humio@0
+      state: started
