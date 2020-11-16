@@ -29,6 +29,8 @@
   become: true
   tasks:
     - name: Include Humio server role
+      vars:
+        humio_host_id: "{{ cluster_index }}"
       import_role: 
         name: humio.server
         tasks_from: humio-update
