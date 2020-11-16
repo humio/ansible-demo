@@ -1,0 +1,36 @@
+---
+#
+# Gather facts from all machines in the cluster
+#
+# This is required even if you're just running against one specific
+# machine in the cluster because the configuration files need host
+# information for all nodes in the cluster when writing the config
+# files for various services Humio uses.
+#
+- hosts: all
+  become: true
+  serial: 10
+  pre_tasks:
+    - name: Gather facts from ALL hosts (regardless of limit or tags)
+      tags: always
+      setup:
+      delegate_to: "{{ item }}"
+      delegate_facts: True
+      when: hostvars[item]['ansible_' + humio_network_interface] is not defined
+      with_items: "{{ groups['all'] }}"
+
+############################################
+#
+# Install Java + Humio roles on humio hosts
+#
+- hosts: humios
+  tags: humio
+  serial: 1
+  become: true
+  tasks:
+    - name: Include Humio server role
+      vars:
+        humio_host_id: "{{ cluster_index }}"
+      import_role: 
+        name: humio.server
+        tasks_from: humio-update
