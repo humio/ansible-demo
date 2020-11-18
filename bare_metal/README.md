@@ -71,3 +71,11 @@ Finally, run the playbook:
 ```
 ansible-playbook site.yml
 ```
+
+##  Updating the Ansible roles
+
+New versions of Humio and it's dependencies can be installed by updating the Ansible roles when a ner version is made available.
+
+```
+ansible-galaxy install -r requirements.yml --force-with-deps
+```
