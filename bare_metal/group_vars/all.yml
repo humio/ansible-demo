@@ -3,7 +3,7 @@
 #
 # humio.zookeeper variables
 #
-zookeeper_version: 3.5.6
+zookeeper_version: 3.5.7
 
 ############################################
 #
