@@ -53,7 +53,7 @@ file.
 
 ## Install the Ansible roles
 
-Before running ansible, the roles defined in the `requirements.yml` file
+Before running Ansible, the roles defined in the `requirements.yml` file
 need to be installed. To do this, run:
 
 ```
@@ -74,7 +74,7 @@ ansible-playbook site.yml
 
 ##  Updating the Ansible roles
 
-New versions of Humio and it's dependencies can be installed by updating the Ansible roles when a ner version is made available.
+New versions of Humio and its dependencies can be installed by updating the Ansible roles when a newer version is made available.
 
 ```
 ansible-galaxy install -r requirements.yml --force-with-deps
