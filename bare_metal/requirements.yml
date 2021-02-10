@@ -1,6 +1,9 @@
 ---
 - src: humio.zookeeper
+  version: 0.2.7
 
 - src: humio.kafka
+  version: 0.2.3
 
 - src: humio.server
+  version: 0.6.15

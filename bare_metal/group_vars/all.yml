@@ -13,7 +13,7 @@ zookeeper_version: 3.5.8
 # the version of Humio to use. a list of versions with
 # their changes can be found in the changelog:
 # https://docs.humio.com/release-notes/
-humio_version: 1.16.1
+humio_version: 1.20.1
 
 # the name of the network interface Humio will be listening
 # on as displayed in `ifconfig` output
