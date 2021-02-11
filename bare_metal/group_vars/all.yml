@@ -25,3 +25,10 @@ humio_network_interface: eth0
 #
 kafka_version: 2.4.1
 kafka_scala_version: 2.13
+
+############################################
+#
+# humio.java variables
+#
+java_version: 13.33.25-2 # Only set this if you are on a system using Apt (Such as Ubuntu or Debian)
+redhat_java_version: 13.31.11-2 # Only set this if you are on a system using Yum (Such as Red Hat)
