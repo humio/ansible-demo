@@ -82,5 +82,8 @@
        {{- ips -}}"
       humio_host_id: "{{ cluster_index }}"
       humio_config:
+        "all": |
+          DIGEST_REPLICATION_FACTOR=2
+          STORAGE_REPLICATION_FACTOR=2
         "0": "EXTERNAL_URL=http://{{ hostvars[inventory_hostname]['ansible_' + humio_network_interface].ipv4.address }}:8080"
         "1": "EXTERNAL_URL=http://{{ hostvars[inventory_hostname]['ansible_' + humio_network_interface].ipv4.address }}:8081"

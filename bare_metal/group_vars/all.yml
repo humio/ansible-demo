@@ -3,7 +3,7 @@
 #
 # humio.zookeeper variables
 #
-zookeeper_version: 3.5.8
+zookeeper_version: 3.7.1
 
 ############################################
 #
@@ -13,7 +13,7 @@ zookeeper_version: 3.5.8
 # the version of Humio to use. a list of versions with
 # their changes can be found in the changelog:
 # https://docs.humio.com/release-notes/
-humio_version: 1.20.1
+humio_version: 1.38.1
 
 # the name of the network interface Humio will be listening
 # on as displayed in `ifconfig` output
@@ -23,7 +23,7 @@ humio_network_interface: eth0
 #
 # humio.kafka variables
 #
-kafka_version: 2.4.1
+kafka_version: 2.8.1
 kafka_scala_version: 2.13
 
 ############################################
@@ -31,4 +31,4 @@ kafka_scala_version: 2.13
 # humio.java variables
 #
 java_version: 13.33.25-2 # Only set this if you are on a system using Apt (Such as Ubuntu or Debian)
-redhat_java_version: 13.31.11-2 # Only set this if you are on a system using Yum (Such as Red Hat)
+redhat_java_version: 13 # Only set this if you are on a system using Yum (Such as Red Hat)
